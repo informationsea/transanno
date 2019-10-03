@@ -1,0 +1,9 @@
+##fileformat=VCFv4.2
+##INFO=<ID=TARGET_CHROM,Number=1,Type=String,Description="Target sequence chromosome">
+##INFO=<ID=TARGET_POS,Number=1,Type=Integer,Description="Target sequence position">
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=SVLEN,Number=1,Type=Integer,Description="length of alternative allele">
+##ALT=<ID=DEL,Description="Deletion">
+##ALT=<ID=INS,Description="Insertion of novel sequence">
+##ALT=<ID=INDEL,Description="Deletion and Insertion of novel sequence">

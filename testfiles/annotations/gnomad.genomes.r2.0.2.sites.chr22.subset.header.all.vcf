@@ -1,0 +1,106 @@
+##fileformat=VCFv4.2
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##FILTER=<ID=RF,Description="Failed random forests filters (SNV cutoff 0.4, indels cutoff 0.4)">
+##FILTER=<ID=PASS,Description="All filters passed for at least one of the alleles at that site (see AS_FilterStatus for allele-specific filter status)">
+##FILTER=<ID=InbreedingCoeff,Description="InbreedingCoeff < -0.3">
+##FILTER=<ID=AC0,Description="Allele Count is zero (i.e. no high-confidence genotype (GQ >= 20, DP >= 10, AB => 0.2 for het calls))">
+##INFO=<ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency among genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AN,Number=1,Type=Integer,Description="Total number of alleles in called genotypes">
+##INFO=<ID=BaseQRankSum,Number=1,Type=Float,Description="Z-score from Wilcoxon rank sum test of Alt Vs. Ref base qualities">
+##INFO=<ID=ClippingRankSum,Number=1,Type=Float,Description="Z-score from Wilcoxon rank sum test of Alt vs. Ref number of hard clipped bases">
+##INFO=<ID=DB,Number=0,Type=Flag,Description="dbSNP Membership">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth; some reads may have been filtered">
+##INFO=<ID=FS,Number=1,Type=Float,Description="Phred-scaled p-value using Fisher's exact test to detect strand bias">
+##INFO=<ID=InbreedingCoeff,Number=1,Type=Float,Description="Inbreeding coefficient as estimated from the genotype likelihoods per-sample when compared against the Hardy-Weinberg expectation">
+##INFO=<ID=MQ,Number=1,Type=Float,Description="RMS Mapping Quality">
+##INFO=<ID=MQRankSum,Number=1,Type=Float,Description="Z-score from Wilcoxon rank sum test of Alt vs. Ref read mapping qualities">
+##INFO=<ID=QD,Number=1,Type=Float,Description="Variant Confidence/Quality by Depth">
+##INFO=<ID=ReadPosRankSum,Number=1,Type=Float,Description="Z-score from Wilcoxon rank sum test of Alt vs. Ref read position bias">
+##INFO=<ID=SOR,Number=1,Type=Float,Description="Symmetric Odds Ratio of 2x2 contingency table to detect strand bias">
+##INFO=<ID=VQSLOD,Number=1,Type=Float,Description="Log odds ratio of being a true variant versus being false under the trained VQSR gaussian mixture model (deprecated; see AS_RF)">
+##INFO=<ID=VQSR_culprit,Number=1,Type=String,Description="The annotation which was the worst performing in the VQSR Gaussian mixture model (deprecated; see AS_RF)">
+##INFO=<ID=VQSR_NEGATIVE_TRAIN_SITE,Number=0,Type=Flag,Description="This variant was used to build the negative training set of bad variants for VQSR (deprecated; see AS_RF_NEGATIVE_TRAIN)">
+##INFO=<ID=VQSR_POSITIVE_TRAIN_SITE,Number=0,Type=Flag,Description="This variant was used to build the positive training set of good variants for VQSR (deprecated; see AS_RF_POSITIVE_TRAIN)">
+##INFO=<ID=GQ_HIST_ALT,Number=A,Type=String,Description="Histogram for GQ for each allele; Midpoints of histogram bins: 2.5|7.5|12.5|17.5|22.5|27.5|32.5|37.5|42.5|47.5|52.5|57.5|62.5|67.5|72.5|77.5|82.5|87.5|92.5|97.5">
+##INFO=<ID=DP_HIST_ALT,Number=A,Type=String,Description="Histogram for DP for each allele; Midpoints of histogram bins: 2.5|7.5|12.5|17.5|22.5|27.5|32.5|37.5|42.5|47.5|52.5|57.5|62.5|67.5|72.5|77.5|82.5|87.5|92.5|97.5">
+##INFO=<ID=AB_HIST_ALT,Number=A,Type=String,Description="Histogram for Allele Balance in heterozygous individuals for each allele; 100*AD[i_alt]/sum(AD); Midpoints of histogram bins: 2.5|7.5|12.5|17.5|22.5|27.5|32.5|37.5|42.5|47.5|52.5|57.5|62.5|67.5|72.5|77.5|82.5|87.5|92.5|97.5">
+##INFO=<ID=GQ_HIST_ALL,Number=1,Type=String,Description="Histogram for GQ; Midpoints of histogram bins: 2.5|7.5|12.5|17.5|22.5|27.5|32.5|37.5|42.5|47.5|52.5|57.5|62.5|67.5|72.5|77.5|82.5|87.5|92.5|97.5">
+##INFO=<ID=DP_HIST_ALL,Number=1,Type=String,Description="Histogram for DP; Midpoints of histogram bins: 2.5|7.5|12.5|17.5|22.5|27.5|32.5|37.5|42.5|47.5|52.5|57.5|62.5|67.5|72.5|77.5|82.5|87.5|92.5|97.5">
+##INFO=<ID=AB_HIST_ALL,Number=1,Type=String,Description="Histogram for Allele Balance in heterozygous individuals; 100*AD[i_alt]/sum(AD); Midpoints of histogram bins: 2.5|7.5|12.5|17.5|22.5|27.5|32.5|37.5|42.5|47.5|52.5|57.5|62.5|67.5|72.5|77.5|82.5|87.5|92.5|97.5">
+##INFO=<ID=AC_Male,Number=A,Type=Integer,Description="Allele count in Male genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AC_Female,Number=A,Type=Integer,Description="Allele count in Female genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AN_Male,Number=1,Type=Integer,Description="Total number of alleles in Male called genotypes">
+##INFO=<ID=AN_Female,Number=1,Type=Integer,Description="Total number of alleles in Female called genotypes">
+##INFO=<ID=AF_Male,Number=A,Type=Float,Description="Allele Frequency among Male genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AF_Female,Number=A,Type=Float,Description="Allele Frequency among Female genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=GC_Male,Number=G,Type=Integer,Description="Count of Male individuals for each genotype">
+##INFO=<ID=GC_Female,Number=G,Type=Integer,Description="Count of Female individuals for each genotype">
+##INFO=<ID=GC_raw,Number=G,Type=Integer,Description="Raw count of individuals for each genotype before filtering low-confidence genotypes">
+##INFO=<ID=AC_raw,Number=A,Type=Integer,Description="Allele counts before filtering low-confidence genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AN_raw,Number=1,Type=Integer,Description="Total number of alleles before filtering low-confidence genotypes">
+##INFO=<ID=GC,Number=G,Type=Integer,Description="Count of individuals for each genotype">
+##INFO=<ID=AF_raw,Number=A,Type=Float,Description="Allele frequency before filtering low-confidence genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=Hom_AFR,Number=A,Type=Integer,Description="Count of homozygous African/African American individuals">
+##INFO=<ID=Hom_AMR,Number=A,Type=Integer,Description="Count of homozygous Admixed American individuals">
+##INFO=<ID=Hom_ASJ,Number=A,Type=Integer,Description="Count of homozygous Ashkenazi Jewish individuals">
+##INFO=<ID=Hom_EAS,Number=A,Type=Integer,Description="Count of homozygous East Asian individuals">
+##INFO=<ID=Hom_FIN,Number=A,Type=Integer,Description="Count of homozygous Finnish individuals">
+##INFO=<ID=Hom_NFE,Number=A,Type=Integer,Description="Count of homozygous Non-Finnish European individuals">
+##INFO=<ID=Hom_OTH,Number=A,Type=Integer,Description="Count of homozygous Other (population not assigned) individuals">
+##INFO=<ID=Hom,Number=A,Type=Integer,Description="Count of homozygous individuals">
+##INFO=<ID=Hom_raw,Number=A,Type=Integer,Description="Count of homozygous individuals in raw genotypes before filtering low-confidence genotypes">
+##INFO=<ID=AC_AFR,Number=A,Type=Integer,Description="Allele count in African/African American genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AC_AMR,Number=A,Type=Integer,Description="Allele count in Admixed American genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AC_ASJ,Number=A,Type=Integer,Description="Allele count in Ashkenazi Jewish genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AC_EAS,Number=A,Type=Integer,Description="Allele count in East Asian genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AC_FIN,Number=A,Type=Integer,Description="Allele count in Finnish genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AC_NFE,Number=A,Type=Integer,Description="Allele count in Non-Finnish European genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AC_OTH,Number=A,Type=Integer,Description="Allele count in Other (population not assigned) genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AN_AFR,Number=1,Type=Integer,Description="Total number of alleles in African/African American called genotypes">
+##INFO=<ID=AN_AMR,Number=1,Type=Integer,Description="Total number of alleles in Admixed American called genotypes">
+##INFO=<ID=AN_ASJ,Number=1,Type=Integer,Description="Total number of alleles in Ashkenazi Jewish called genotypes">
+##INFO=<ID=AN_EAS,Number=1,Type=Integer,Description="Total number of alleles in East Asian called genotypes">
+##INFO=<ID=AN_FIN,Number=1,Type=Integer,Description="Total number of alleles in Finnish called genotypes">
+##INFO=<ID=AN_NFE,Number=1,Type=Integer,Description="Total number of alleles in Non-Finnish European called genotypes">
+##INFO=<ID=AN_OTH,Number=1,Type=Integer,Description="Total number of alleles in Other (population not assigned) called genotypes">
+##INFO=<ID=AF_AFR,Number=A,Type=Float,Description="Allele Frequency among African/African American genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AF_AMR,Number=A,Type=Float,Description="Allele Frequency among Admixed American genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AF_ASJ,Number=A,Type=Float,Description="Allele Frequency among Ashkenazi Jewish genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AF_EAS,Number=A,Type=Float,Description="Allele Frequency among East Asian genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AF_FIN,Number=A,Type=Float,Description="Allele Frequency among Finnish genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AF_NFE,Number=A,Type=Float,Description="Allele Frequency among Non-Finnish European genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AF_OTH,Number=A,Type=Float,Description="Allele Frequency among Other (population not assigned) genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=STAR_AC,Number=1,Type=Integer,Description="AC of deletions spanning this position">
+##INFO=<ID=STAR_AC_raw,Number=1,Type=Integer,Description="Allele counts of deletions spanning this position before filtering low-confidence genotypes">
+##INFO=<ID=STAR_Hom,Number=1,Type=Integer,Description="Count of individuals homozygous for a deletion spanning this position">
+##INFO=<ID=POPMAX,Number=A,Type=String,Description="Population with max AF">
+##INFO=<ID=AC_POPMAX,Number=A,Type=Integer,Description="AC in the population with the max AF">
+##INFO=<ID=AN_POPMAX,Number=A,Type=Integer,Description="AN in the population with the max AF">
+##INFO=<ID=AF_POPMAX,Number=A,Type=Float,Description="Maximum Allele Frequency across populations (excluding OTH)">
+##INFO=<ID=DP_MEDIAN,Number=A,Type=Integer,Description="Median DP in carriers of each allele">
+##INFO=<ID=DREF_MEDIAN,Number=A,Type=Float,Description="Median dosage of homozygous reference in carriers of each allele">
+##INFO=<ID=GQ_MEDIAN,Number=A,Type=Integer,Description="Median GQ in carriers of each allele">
+##INFO=<ID=AB_MEDIAN,Number=A,Type=Float,Description="Median allele balance in heterozygote carriers of each allele">
+##INFO=<ID=AS_RF,Number=A,Type=Float,Description="Random Forests probability for each allele">
+##INFO=<ID=AS_FilterStatus,Number=A,Type=String,Description="Random Forests filter status for each allele">
+##INFO=<ID=AS_RF_POSITIVE_TRAIN,Number=.,Type=Integer,Description="Contains the indices of all alleles used as positive examples during training of random forests">
+##INFO=<ID=AS_RF_NEGATIVE_TRAIN,Number=.,Type=Integer,Description="Contains the indices of all alleles used as negative examples during training of random forests">
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|IMPACT|SYMBOL|Gene|Feature_type|Feature|BIOTYPE|EXON|INTRON|HGVSc|HGVSp|cDNA_position|CDS_position|Protein_position|Amino_acids|Codons|Existing_variation|ALLELE_NUM|DISTANCE|STRAND|FLAGS|VARIANT_CLASS|MINIMISED|SYMBOL_SOURCE|HGNC_ID|CANONICAL|TSL|APPRIS|CCDS|ENSP|SWISSPROT|TREMBL|UNIPARC|GENE_PHENO|SIFT|PolyPhen|DOMAINS|HGVS_OFFSET|GMAF|AFR_MAF|AMR_MAF|EAS_MAF|EUR_MAF|SAS_MAF|AA_MAF|EA_MAF|ExAC_MAF|ExAC_Adj_MAF|ExAC_AFR_MAF|ExAC_AMR_MAF|ExAC_EAS_MAF|ExAC_FIN_MAF|ExAC_NFE_MAF|ExAC_OTH_MAF|ExAC_SAS_MAF|CLIN_SIG|SOMATIC|PHENO|PUBMED|MOTIF_NAME|MOTIF_POS|HIGH_INF_POS|MOTIF_SCORE_CHANGE|LoF|LoF_filter|LoF_flags|LoF_info">
+##INFO=<ID=GC_AFR,Number=G,Type=Integer,Description="Count of African/African American individuals for each genotype">
+##INFO=<ID=GC_AMR,Number=G,Type=Integer,Description="Count of Admixed American individuals for each genotype">
+##INFO=<ID=GC_ASJ,Number=G,Type=Integer,Description="Count of Ashkenazi Jewish individuals for each genotype">
+##INFO=<ID=GC_EAS,Number=G,Type=Integer,Description="Count of East Asian individuals for each genotype">
+##INFO=<ID=GC_FIN,Number=G,Type=Integer,Description="Count of Finnish individuals for each genotype">
+##INFO=<ID=GC_NFE,Number=G,Type=Integer,Description="Count of Non-Finnish European individuals for each genotype">
+##INFO=<ID=GC_OTH,Number=G,Type=Integer,Description="Count of Other (population not assigned) individuals for each genotype">
+##INFO=<ID=Hom_Male,Number=A,Type=Integer,Description="Count of homozygous Male individuals">
+##INFO=<ID=Hom_Female,Number=A,Type=Integer,Description="Count of homozygous Female individuals">
+##INFO=<ID=segdup,Number=0,Type=Flag,Description="In a segmental duplication region">
+##INFO=<ID=lcr,Number=0,Type=Flag,Description="In a low complexity region">
+##reference=file:///seq/references/Homo_sapiens_assembly19/v1/Homo_sapiens_assembly19.fasta
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO

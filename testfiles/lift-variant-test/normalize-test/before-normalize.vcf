@@ -1,0 +1,15 @@
+##fileformat=VCFv4.2
+##contig=<ID=seq-a,length=43964>
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+seq-a	195	.	CGC	C	.	.	.
+seq-a	194	.	GCG	G	.	.	.
+seq-a	193	.	CGC	C	.	.	.
+seq-a	192	.	CCG	C	.	.	.
+seq-a	11501	.	G	GTG	.	.	.
+seq-a	11500	.	T	TGT	.	.	.
+seq-a	11499	.	G	GTG	.	.	.
+seq-a	11548	.	AAA	A	.	.	.
+seq-a	11548	.	AA	A	.	.	.
+seq-a	11549	.	A	AAA	.	.	.
+seq-a	11549	.	A	AA	.	.	.
+seq-a	11549	.	A	T	.	.	.
