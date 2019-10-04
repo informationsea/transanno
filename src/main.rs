@@ -51,7 +51,7 @@ fn main() {
         commands::chain_to_bed_vcf(matches)
     } else if let Some(matches) = matches.subcommand_matches("minimap2-to-chain") {
         commands::minimap2_to_chain(matches)
-    } else if let Some(matches) = matches.subcommand_matches("lift-gff") {
+    } else if let Some(matches) = matches.subcommand_matches("liftgene") {
         commands::lift_gene(matches)
     } else {
         unreachable!()
