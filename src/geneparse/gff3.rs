@@ -344,7 +344,7 @@ impl FromStr for Gff3Record {
             },
             attributes: attributes
                 .iter()
-                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .map(|(k, v)| ((*k).to_string(), (*v).to_string()))
                 .collect(),
         })
     }
