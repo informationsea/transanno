@@ -1,3 +1,4 @@
+use super::Command;
 use crate::defs::{adaptive_create, adaptive_open};
 use crate::genelift::GeneLiftOver;
 use crate::geneparse::gff3::{Gff3GroupedReader, Gff3Reader};
@@ -5,8 +6,67 @@ use crate::geneparse::gtf::{GtfGroupedReader, GtfReader};
 use crate::geneparse::{Feature, GroupedReader};
 use crate::poslift::PositionLiftOver;
 use crate::LiftOverError;
-use clap::ArgMatches;
+use clap::{App, Arg, ArgMatches};
 use std::io;
+
+pub struct LiftGene;
+
+impl Command for LiftGene {
+    fn command_name(&self) -> &'static str {
+        "liftgene"
+    }
+    fn config_subcommand(&self, app: App<'static, 'static>) -> App<'static, 'static> {
+        app.about("Lift GENCODE or Ensemble GFF3/GTF file")
+            .arg(
+                Arg::with_name("chain")
+                    .long("chain")
+                    .short("c")
+                    .required(true)
+                    .takes_value(true)
+                    .help("chain file"),
+            )
+            .arg(
+                Arg::with_name("gff")
+                    .index(1)
+                    .required(true)
+                    .takes_value(true)
+                    .help("input GFF3/GTF file (GENCODE/Ensemble)"),
+            )
+            .arg(
+                Arg::with_name("format")
+                    .long("format")
+                    .possible_values(&["auto", "GFF3", "GTF"])
+                    .takes_value(true)
+                    .default_value("auto")
+                    .help("Input file format"),
+            )
+            .arg(
+                Arg::with_name("output")
+                    .long("output")
+                    .short("o")
+                    .required(true)
+                    .takes_value(true)
+                    .help("GFF3/GTF output path (unsorted)"),
+            )
+            .arg(
+                Arg::with_name("failed")
+                    .long("failed")
+                    .short("f")
+                    .required(true)
+                    .takes_value(true)
+                    .help("Failed to liftOver GFF3/GTF output path"),
+            )
+    }
+    fn run(&self, matches: &ArgMatches<'static>) -> Result<(), crate::LiftOverError> {
+        lift_gene_helper(
+            matches.value_of("chain").unwrap(),
+            matches.value_of("gff").unwrap(),
+            matches.value_of("format").unwrap(),
+            matches.value_of("output").unwrap(),
+            matches.value_of("failed").unwrap(),
+        )
+    }
+}
 
 pub fn lift_gene(matches: &ArgMatches) {
     lift_gene_helper(

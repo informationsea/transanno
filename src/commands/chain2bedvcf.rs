@@ -1,11 +1,99 @@
+use super::Command;
 use crate::chain::{Chain, Strand};
+use crate::cli::validate_integer;
 use crate::defs::{
     adaptive_create, adaptive_open, reverse_acid, reverse_complement, GenomeSequence,
 };
 use crate::LiftOverError;
 use bio::io::fasta::IndexedReader;
-use clap::ArgMatches;
+use clap::{App, Arg, ArgMatches};
 use std::io;
+
+pub struct Chain2BedVcf;
+
+impl Command for Chain2BedVcf {
+    fn command_name(&self) -> &'static str {
+        "chain-to-bed-vcf"
+    }
+    fn config_subcommand(&self, app: App<'static, 'static>) -> App<'static, 'static> {
+        app.about("Create BED and VCF file from chain file")
+        .arg(
+            Arg::with_name("chain")
+                .index(1)
+                .takes_value(true)
+                .required(true)
+                .help("Input Chain file")
+        )
+        .arg(
+            Arg::with_name("reference-bed")
+                .long("output-reference-bed")
+                .short("b")
+                .takes_value(true)
+                .required(true)
+                .help("Output Reference BED file (Not sorted)")
+        )
+        .arg(
+            Arg::with_name("query-bed")
+                .long("output-query-bed")
+                .short("d")
+                .takes_value(true)
+                .required(true)
+                .help("Output Query BED file (Not sorted)")
+        )
+        .arg(
+            Arg::with_name("reference-vcf")
+                .long("output-reference-vcf")
+                .short("v")
+                .takes_value(true)
+                .required(true)
+                .help("Output Reference VCF file (Not sorted)")
+        )
+        .arg(
+            Arg::with_name("query-vcf")
+                .long("output-query-vcf")
+                .short("c")
+                .takes_value(true)
+                .required(true)
+                .help("Output Query VCF file (Not sorted)")
+        )
+        .arg(
+            Arg::with_name("reference-sequence")
+                .long("reference")
+                .short("r")
+                .takes_value(true)
+                .required(true)
+                .help("Reference FASTA (.fai file is required)"),
+        )
+        .arg(
+            Arg::with_name("query-sequence")
+                .long("query")
+                .short("q")
+                .takes_value(true)
+                .required(true)
+                .help("Query FASTA (.fai file is required)"),
+        ).arg(
+            Arg::with_name("svlen")
+                .long("svlen")
+                .short("s")
+                .takes_value(true)
+                .default_value("50")
+                .validator(validate_integer)
+                .help("Do not write nucleotides if a length of reference or alternative sequence is longer than svlen [default: 50]"),
+        )
+    }
+    fn run(&self, matches: &ArgMatches<'static>) -> Result<(), crate::LiftOverError> {
+        chain_to_bed_vcf_helper(
+            matches.value_of("chain").unwrap(),
+            matches.value_of("reference-sequence").unwrap(),
+            matches.value_of("query-sequence").unwrap(),
+            matches.value_of("reference-vcf").unwrap(),
+            matches.value_of("query-vcf").unwrap(),
+            matches.value_of("reference-bed").unwrap(),
+            matches.value_of("query-bed").unwrap(),
+            matches.value_of("svlen").unwrap().parse().unwrap(),
+        )
+    }
+}
 
 pub fn chain_to_bed_vcf(matches: &ArgMatches) {
     chain_to_bed_vcf_helper(
