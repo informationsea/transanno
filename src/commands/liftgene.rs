@@ -1,11 +1,11 @@
 use super::Command;
-use crate::defs::{adaptive_create, adaptive_open};
 use crate::genelift::GeneLiftOver;
 use crate::geneparse::gff3::{Gff3GroupedReader, Gff3Reader};
 use crate::geneparse::gtf::{GtfGroupedReader, GtfReader};
 use crate::geneparse::{Feature, GroupedReader};
 use crate::poslift::PositionLiftOver;
 use crate::LiftOverError;
+use autocompress::{create, open};
 use clap::{App, Arg, ArgMatches};
 use std::io;
 
@@ -92,10 +92,10 @@ fn lift_gene_helper(
     output: &str,
     failed: &str,
 ) -> Result<(), LiftOverError> {
-    let chain_file = PositionLiftOver::load(adaptive_open(chain_path)?)?;
+    let chain_file = PositionLiftOver::load(open(chain_path)?)?;
     let gene_lift = GeneLiftOver::new(chain_file);
-    let mut writer = io::BufWriter::new(adaptive_create(output)?);
-    let mut failed_writer = io::BufWriter::new(adaptive_create(failed)?);
+    let mut writer = io::BufWriter::new(create(output)?);
+    let mut failed_writer = io::BufWriter::new(create(failed)?);
 
     let format = match format {
         "GFF3" | "gff3" => Format::GFF3,
@@ -111,11 +111,12 @@ fn lift_gene_helper(
 
     match format {
         Format::GFF3 => {
-            let mut reader = Gff3GroupedReader::new(Gff3Reader::new(adaptive_open(gff)?));
+            let mut reader =
+                Gff3GroupedReader::new(Gff3Reader::new(io::BufReader::new(open(gff)?)));
             lift_gene_run(&gene_lift, &mut reader, &mut writer, &mut failed_writer)?;
         }
         Format::GTF => {
-            let mut reader = GtfGroupedReader::new(GtfReader::new(adaptive_open(gff)?));
+            let mut reader = GtfGroupedReader::new(GtfReader::new(io::BufReader::new(open(gff)?)));
             lift_gene_run(&gene_lift, &mut reader, &mut writer, &mut failed_writer)?;
         }
     }

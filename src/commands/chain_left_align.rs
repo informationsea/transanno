@@ -1,6 +1,6 @@
 use super::Command;
 use crate::chain;
-use crate::defs::*;
+use autocompress::{create, open};
 use bio::io::fasta::IndexedReader;
 use clap::{App, Arg, ArgMatches};
 use log::info;
@@ -47,10 +47,10 @@ impl Command for ChainLeftAlign {
     }
     fn run(&self, matches: &ArgMatches<'static>) -> Result<(), crate::LiftOverError> {
         info!("start loading chain");
-        let chain_file = adaptive_open(matches.value_of("original-chain").unwrap())
+        let chain_file = open(matches.value_of("original-chain").unwrap())
             .expect("Cannot open input chain file");
-        let mut output_file = adaptive_create(matches.value_of("output").unwrap())
-            .expect("Cannot open output chain file");
+        let mut output_file =
+            create(matches.value_of("output").unwrap()).expect("Cannot open output chain file");
         let mut reference_seq =
             IndexedReader::from_file(&matches.value_of("reference_sequence").unwrap())
                 .expect("Cannot load reference sequence");

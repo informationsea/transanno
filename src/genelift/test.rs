@@ -1,6 +1,6 @@
 use super::*;
-use crate::defs::adaptive_open;
 use crate::poslift::PositionLiftOver;
+use autocompress::{create, open};
 use std::collections::HashMap;
 use std::fmt::{self, Display};
 use std::fs;
@@ -67,8 +67,7 @@ impl Feature for TestFeature {
 }
 
 fn load_hg38_to_hg19_lift() -> GeneLiftOver<PositionLiftOver> {
-    let hg38_to_hg19_chain =
-        adaptive_open("testfiles/hg38ToHg19/hg38ToHg19.over.chain.chr22").unwrap();
+    let hg38_to_hg19_chain = open("testfiles/hg38ToHg19/hg38ToHg19.over.chain.chr22").unwrap();
     let region_lift = PositionLiftOver::load(hg38_to_hg19_chain).unwrap();
     GeneLiftOver::new(region_lift)
 }
@@ -259,10 +258,9 @@ fn test_simple_feature() {
 
 // TODO: test complex features
 
-use crate::defs::adaptive_create;
 use crate::geneparse::gff3::{Gff3GroupedReader, Gff3Reader};
 use crate::geneparse::gtf::{GtfGroupedReader, GtfReader};
-use std::io::BufReader;
+use std::io::{BufReader, Write};
 
 #[test]
 fn test_gff3_real_check2() -> Result<(), FeatureLiftError> {
@@ -273,10 +271,9 @@ fn test_gff3_real_check2() -> Result<(), FeatureLiftError> {
 
     fs::create_dir_all("target/test-output/gene").unwrap();
 
-    let mut writer = adaptive_create(
-        "./target/test-output/gene/gencode.v30.basic.annotation.CHEK2-MCHR1-lifted.gff3",
-    )
-    .unwrap();
+    let mut writer =
+        create("./target/test-output/gene/gencode.v30.basic.annotation.CHEK2-MCHR1-lifted.gff3")
+            .unwrap();
     for one in gff3_genes {
         let one = one.unwrap();
         match gene_lift.lift_gene_feature(&one) {
@@ -315,8 +312,7 @@ fn test_gtf_real_check2() -> Result<(), FeatureLiftError> {
     let gtf_genes = GtfGroupedReader::new(GtfReader::new(BufReader::new(gtf_data)));
     let gene_lift = load_hg38_to_hg19_lift();
     let mut writer =
-        adaptive_create("./target/test-output/gene/gencode.v31.annotation.CHEK2-MCHR1-lifted.gff3")
-            .unwrap();
+        create("./target/test-output/gene/gencode.v31.annotation.CHEK2-MCHR1-lifted.gff3").unwrap();
     for one in gtf_genes {
         let one = one.unwrap();
         match gene_lift.lift_gene_feature(&one) {

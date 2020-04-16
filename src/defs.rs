@@ -2,9 +2,7 @@ use super::{LiftOverError, LiftOverErrorKind};
 use crate::vcfparse::VCFRecord;
 use bio::io::fasta::IndexedReader;
 use failure::ResultExt;
-use log::debug;
-use std::fs;
-use std::io::{self, BufRead, Read, Seek, Write};
+use std::io::{Read, Seek};
 use std::str;
 
 pub trait GenomeSequence {
@@ -146,31 +144,6 @@ pub fn chromosome_priority(name: &str) -> u64 {
             }
         }
     }
-}
-
-pub fn adaptive_create(path: &str) -> io::Result<Box<dyn Write>> {
-    let raw_file = io::BufWriter::new(fs::File::create(&path)?);
-    Ok(if path.ends_with(".gz") {
-        debug!("create {} as gzip file", path);
-        Box::new(flate2::write::GzEncoder::new(
-            raw_file,
-            flate2::Compression::default(),
-        ))
-    } else {
-        Box::new(raw_file)
-    })
-}
-
-pub fn adaptive_open(path: &str) -> io::Result<Box<dyn BufRead>> {
-    let raw_file = io::BufReader::new(fs::File::open(&path)?);
-    Ok(if path.ends_with(".gz") || path.ends_with(".bgz") {
-        debug!("open {} as gzip file", path);
-        Box::new(io::BufReader::new(flate2::read::MultiGzDecoder::new(
-            raw_file,
-        )))
-    } else {
-        Box::new(raw_file)
-    })
 }
 
 #[cfg(test)]

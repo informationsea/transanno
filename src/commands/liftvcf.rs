@@ -1,10 +1,9 @@
 use super::Command;
 use crate::cli::validate_integer;
-use crate::defs::*;
 use crate::vcflift;
+use autocompress::{create, open};
 use clap::{App, Arg, ArgMatches};
 use log::info;
-use std::io::BufRead;
 
 pub struct LiftVcf;
 
@@ -161,11 +160,11 @@ impl Command for LiftVcf {
         .expect("Cannot load chain/FASTA file");
         info!("chain file and fasta files were loaded");
 
-        let uncompressed_reader: Box<dyn BufRead> =
-            adaptive_open(matches.value_of("vcf").unwrap()).expect("Cannot open input VCF");
+        let uncompressed_reader =
+            open(matches.value_of("vcf").unwrap()).expect("Cannot open input VCF");
         let success_writer =
-            adaptive_create(matches.value_of("output").unwrap()).expect("Cannot create output VCF");
-        let failed_writer = adaptive_create(matches.value_of("fail").unwrap())
+            create(matches.value_of("output").unwrap()).expect("Cannot create output VCF");
+        let failed_writer = create(matches.value_of("fail").unwrap())
             .expect("Cannot create output VCF for failed records");
         vcf_lift.lift_vcf(uncompressed_reader, success_writer, failed_writer)
     }

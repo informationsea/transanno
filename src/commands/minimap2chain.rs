@@ -1,8 +1,8 @@
 use super::Command;
-use crate::defs::{adaptive_create, adaptive_open};
+use autocompress::{create, open};
 use clap::{App, Arg, ArgMatches};
 use regex::Regex;
-use std::io;
+use std::io::{self, BufRead, Write};
 
 pub struct Minimap2Chain;
 
@@ -59,8 +59,8 @@ pub fn minimap2_to_chain(matches: &ArgMatches) {
 }
 
 fn minimap2_to_chain_helper(paf_path: &str, chain_path: &str) -> io::Result<()> {
-    let mut paf_file = adaptive_open(paf_path).expect("Cannot open paf file");
-    let mut chain_file = adaptive_create(chain_path).expect("Cannot create chain file");
+    let mut paf_file = io::BufReader::new(open(paf_path).expect("Cannot open paf file"));
+    let mut chain_file = create(chain_path).expect("Cannot create chain file");
 
     let mut count = 0;
     loop {

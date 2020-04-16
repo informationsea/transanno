@@ -1,13 +1,12 @@
 use super::Command;
 use crate::chain::{Chain, Strand};
 use crate::cli::validate_integer;
-use crate::defs::{
-    adaptive_create, adaptive_open, reverse_acid, reverse_complement, GenomeSequence,
-};
+use crate::defs::{reverse_acid, reverse_complement, GenomeSequence};
 use crate::LiftOverError;
+use autocompress::{create, open};
 use bio::io::fasta::IndexedReader;
 use clap::{App, Arg, ArgMatches};
-use std::io;
+use std::io::{self, Write};
 
 pub struct Chain2BedVcf;
 
@@ -125,18 +124,16 @@ fn chain_to_bed_vcf_helper(
     let mut query_sequence =
         IndexedReader::from_file(&query_sequence_path).expect("Cannot open query sequence");
     let chain_file =
-        crate::chain::ChainFile::load(adaptive_open(chain_path).expect("Cannot open chain file"))
+        crate::chain::ChainFile::load(open(chain_path).expect("Cannot open chain file"))
             .expect("Cannot parse chain file");
 
-    let mut query_vcf_writer =
-        adaptive_create(query_vcf_path).expect("Cannot create Query VCF file");
+    let mut query_vcf_writer = create(query_vcf_path).expect("Cannot create Query VCF file");
     write_vcf_header_for_sequence(&mut query_vcf_writer, &query_sequence, query_sequence_path)
         .expect("Cannot write query VCF");
-    let mut query_bed_writer =
-        adaptive_create(query_bed_path).expect("Cannot create Query BED file");
+    let mut query_bed_writer = create(query_bed_path).expect("Cannot create Query BED file");
 
     let mut reference_vcf_writer =
-        adaptive_create(reference_vcf_path).expect("Cannot create reference VCF file");
+        create(reference_vcf_path).expect("Cannot create reference VCF file");
     write_vcf_header_for_sequence(
         &mut reference_vcf_writer,
         &reference_sequence,
@@ -145,7 +142,7 @@ fn chain_to_bed_vcf_helper(
     .expect("Cannot write reference VCF");
 
     let mut reference_bed_writer =
-        adaptive_create(reference_bed_path).expect("Cannot create reference BED file");
+        create(reference_bed_path).expect("Cannot create reference BED file");
 
     for one_chain in chain_file.chain_list {
         // write BED
