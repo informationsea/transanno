@@ -254,6 +254,100 @@ fn test_simple_feature() {
             strand: GeneStrand::Forward
         }
     );
+
+    // test multi transcript gene
+    let original = Gene {
+        transcripts: vec![
+            Transcript {
+                children: vec![TestFeature {
+                    feature_type: FeatureType::Exon,
+                    seq_id: "chr22".to_string(),
+                    start: 22822776,
+                    end: 22822871,
+                    strand: GeneStrand::Forward,
+                    attributes: HashMap::new(),
+                }],
+                original_record: TestFeature {
+                    feature_type: FeatureType::Transcript,
+                    seq_id: "chr22".to_string(),
+                    start: 22822776,
+                    end: 22822871,
+                    strand: GeneStrand::Forward,
+                    attributes: HashMap::new(),
+                },
+            },
+            Transcript {
+                children: vec![TestFeature {
+                    feature_type: FeatureType::Exon,
+                    seq_id: "chr22".to_string(),
+                    start: 22822778,
+                    end: 22822870,
+                    strand: GeneStrand::Forward,
+                    attributes: HashMap::new(),
+                }],
+                original_record: TestFeature {
+                    feature_type: FeatureType::Transcript,
+                    seq_id: "chr22".to_string(),
+                    start: 22822778,
+                    end: 22822870,
+                    strand: GeneStrand::Forward,
+                    attributes: HashMap::new(),
+                },
+            },
+        ],
+        original_record: TestFeature {
+            feature_type: FeatureType::Gene,
+            seq_id: "chr22".to_string(),
+            start: 22822776,
+            end: 22822871,
+            strand: GeneStrand::Forward,
+            attributes: HashMap::new(),
+        },
+    };
+
+    assert_eq!(
+        gene_lift.lift_gene_feature(&original).unwrap(),
+        LiftedGene {
+            transcripts: vec![
+                LiftedTranscript {
+                    transcript: &original.transcripts[0],
+                    features: vec![LiftedFeature {
+                        seq_id: "chr22".to_string(),
+                        start: 23165270,
+                        end: 23165365,
+                        strand: GeneStrand::Forward,
+                        changes: vec![RegionChangeOp::Aligned(23165365 - 23165270)],
+                        feature: &original.transcripts[0].children[0],
+                    }],
+                    seq_id: "chr22".to_string(),
+                    start: 23165270,
+                    end: 23165365,
+                    strand: GeneStrand::Forward,
+                },
+                LiftedTranscript {
+                    transcript: &original.transcripts[1],
+                    features: vec![LiftedFeature {
+                        seq_id: "chr22".to_string(),
+                        start: 23165272,
+                        end: 23165364,
+                        strand: GeneStrand::Forward,
+                        changes: vec![RegionChangeOp::Aligned(23165364 - 23165272)],
+                        feature: &original.transcripts[1].children[0],
+                    }],
+                    seq_id: "chr22".to_string(),
+                    start: 23165272,
+                    end: 23165364,
+                    strand: GeneStrand::Forward,
+                }
+            ],
+            failed_transcripts: vec![],
+            seq_id: "chr22".to_string(),
+            start: 23165270,
+            end: 23165365,
+            gene: &original,
+            strand: GeneStrand::Forward
+        }
+    );
 }
 
 // TODO: test complex features
