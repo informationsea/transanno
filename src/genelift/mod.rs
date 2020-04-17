@@ -340,7 +340,7 @@ impl<L: LiftPosition> GeneLiftOver<L> {
             .collect();
 
         let new_start = success_features.iter().map(|x| x.start).min().unwrap();
-        let new_end = success_features.iter().map(|x| x.end).min().unwrap();
+        let new_end = success_features.iter().map(|x| x.end).max().unwrap();
 
         Ok(LiftedGene {
             gene: feature,
