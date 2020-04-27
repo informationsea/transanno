@@ -13,6 +13,10 @@ main() {
         return
     fi
 
+    pushd liftover-rs
+    cargo test --target $TARGET --release
+    popd    
+
     cargo test --target $TARGET --release
     rm -rf target/test-output
 }
