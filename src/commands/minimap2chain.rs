@@ -199,8 +199,8 @@ mod test {
         fs::create_dir_all("target/test-output/minimap2chain/")?;
 
         minimap2_to_chain_helper(
-            "testfiles/lift-variant-test/sequence/seq-a--to--seq-b.paf",
-            "target/test-output/minimap2chain/seq-a--to--seq-b.chain",
+            "liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.paf",
+            "target/test-output/minimap2chain/GRCh38-to-GRCh37.chain",
         )?;
         // TODO check result
 

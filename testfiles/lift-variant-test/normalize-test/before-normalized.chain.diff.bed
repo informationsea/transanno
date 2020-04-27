@@ -1,7 +1,0 @@
-track name="seq-a lift test difference" description="seq-a lift test difference" visibility=2 itemRgb="On"
-seq-a	14445	14449	DEL:+seq-b:18820-18821:TTTT>T	0	+	14446	14449	215,0,53
-seq-a	14453	14454	SNV:+seq-b:18825:T>T	0	+	14453	14454	238,120,0
-seq-a	14462	14464	INS:+seq-b:18834-18838:A>AAAA	0	+	14463	14464	199,0,103
-seq-a	31561	31563	DEL:-seq-b:33624-33625:TT>T	0	-	31562	31563	215,0,53
-seq-a	31573	31575	INS:-seq-b:33612-33614:T>TT	0	-	31574	31575	199,0,103
-seq-a	31584	31585	SNV:-seq-b:33602:A>A	0	-	31584	31585	238,120,0

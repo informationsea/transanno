@@ -1,3 +1,0 @@
-track name="seq-a lift test alignment" description="seq-a lift test alignment" visibility=2 itemRgb="On"
-seq-a	14440	14467	chain:+seq-b:18815-18842	0	+	14440	14467	0,104,183
-seq-a	31552	31591	chain:-seq-b:33596-33635	0	-	31552	31591	0,104,183

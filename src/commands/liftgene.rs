@@ -1,12 +1,13 @@
 use super::Command;
-use crate::genelift::GeneLiftOver;
-use crate::geneparse::gff3::{Gff3GroupedReader, Gff3Reader};
-use crate::geneparse::gtf::{GtfGroupedReader, GtfReader};
-use crate::geneparse::{Feature, GroupedReader};
-use crate::poslift::PositionLiftOver;
-use crate::LiftOverError;
 use autocompress::{create, open};
 use clap::{App, Arg, ArgMatches};
+use liftover::genelift::GeneLiftOver;
+use liftover::geneparse::gff3::{Gff3GroupedReader, Gff3Reader};
+use liftover::geneparse::gtf::{GtfGroupedReader, GtfReader};
+use liftover::geneparse::{Feature, GroupedReader};
+use liftover::poslift::PositionLiftOver;
+use liftover::LiftOverError;
+use std::fmt::Display;
 use std::io;
 
 pub struct LiftGene;
@@ -124,8 +125,8 @@ fn lift_gene_helper(
     Ok(())
 }
 
-fn lift_gene_run<G: Feature, T: Feature, F: Feature>(
-    gene_lift: &GeneLiftOver<PositionLiftOver>,
+fn lift_gene_run<G: Feature + Display, T: Feature + Display, F: Feature + Display>(
+    gene_lift: &GeneLiftOver,
     reader: &mut impl GroupedReader<G, T, F>,
     writer: &mut impl io::Write,
     failed_writer: &mut impl io::Write,
@@ -206,11 +207,11 @@ mod test {
         fs::create_dir_all("target/test-output/gene")?;
 
         lift_gene_helper(
-            "testfiles/hg38ToHg19/hg38ToHg19.over.chain.gz",
-            "testfiles/gene/gencode.v30.basic.annotation.chr22.gff3.gz",
+            "liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
+            "liftover-rs/testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gff3.xz",
             "auto",
-            "target/test-output/gene/gff-lift-gencode.v30.basic.annotation.chr22.lifted.gff3.gz",
-            "target/test-output/gene/gff-lift-gencode.v30.basic.annotation.chr22.failed.gff3.gz",
+            "target/test-output/gene/gff-lift-gencode.v33.basic.annotation.chr22.mapped.gff3.gz",
+            "target/test-output/gene/gff-lift-gencode.v33.basic.annotation.chr22.failed.gff3.gz",
         )?;
 
         Ok(())
@@ -221,11 +222,11 @@ mod test {
         fs::create_dir_all("target/test-output/gene")?;
 
         lift_gene_helper(
-            "testfiles/hg38ToHg19/hg38ToHg19.over.chain.gz",
-            "testfiles/gene/gencode.v31.annotation.chr22.gtf.gz",
-            "auto",
-            "target/test-output/gene/gff-lift-gencode.v31.annotation.chr22.lifted.gtf.gz",
-            "target/test-output/gene/gff-lift-gencode.v31.annotation.chr22.failed.gtf.gz",
+            "liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
+            "liftover-rs/testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gtf.xz",
+            "gtf",
+            "target/test-output/gene/gff-lift-gencode.v33.annotation.chr22.mapped.gtf.gz",
+            "target/test-output/gene/gff-lift-gencode.v33.annotation.chr22.failed.gtf.gz",
         )?;
 
         Ok(())
@@ -236,11 +237,11 @@ mod test {
         fs::create_dir_all("target/test-output/gene")?;
 
         lift_gene_helper(
-            "testfiles/hg38ToHg19/hg38ToHg19.over.chain.gz",
-            "testfiles/gene/Homo_sapiens.GRCh38.97.chr22.gff3.gz",
+            "liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
+            "liftover-rs/testfiles/GENCODE/Homo_sapiens.GRCh38.99.ensembl.chr22.gff3.xz",
             "auto",
-            "target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.97.chr22.lifted.gff3.gz",
-            "target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.97.chr22.failed.gff3.gz",
+            "target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.mapped.gff3.gz",
+            "target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.failed.gff3.gz",
         )?;
 
         Ok(())
@@ -251,11 +252,11 @@ mod test {
         fs::create_dir_all("target/test-output/gene")?;
 
         lift_gene_helper(
-            "testfiles/hg38ToHg19/hg38ToHg19.over.chain.gz",
-            "testfiles/gene/Homo_sapiens.GRCh38.97.chr22.gtf.gz",
+            "liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
+            "liftover-rs/testfiles/GENCODE/Homo_sapiens.GRCh38.99.ensembl.chr22.gff3.xz",
             "auto",
-            "target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.97.chr22.lifted.gtf.gz",
-            "target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.97.chr22.failed.gtf.gz",
+            "target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.mapped.gtf.gz",
+            "target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.failed.gtf.gz",
         )?;
 
         Ok(())

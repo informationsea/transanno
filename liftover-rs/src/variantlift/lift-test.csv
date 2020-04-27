@@ -1,0 +1,25 @@
+original_chrom,original_pos,original_ref,original_alt,mapped_chrom,mapped_pos,mapped_original_ref,mapped_ref,mapped_alt,mapped_strand,mapped_ref_changed,comment
+chr22,15280114,G,A,chr22,16697850,C,C,T,-,FALSE,Chain edge reversed
+chr22,15690440,A,G,chr22,16287523,T,T,C,-,FALSE,rs370223417 reversed
+chr22,15928016,C,A,chr22,16050001,G,G,T,-,FALSE,Chain edge reversed
+chr22,16367189,G,A,chr22,16847851,G,G,A,+,FALSE,Chain edge
+chr22,17369366,C,A,chr22,17850265,C,C,A,+,FALSE,Chain edge
+chr22,17369237,G,"A,C",chr22,17850136,G,G,"A,C",+,FALSE,rs80045382
+chr22,17367557,ATGTAT,A,chr22,17848456,ATGTAT,ATGTAT,A,+,FALSE,rs560166584
+chr22,17298331,A,G,chr22,17779221,A,A,G,+,FALSE,rs146742507
+chr22,16542914,CCTTT,C,chr22,17023804,CCTTT,CCTTT,C,+,FALSE,rs558253639
+chr22,15346765,AAG,A,chr22,16631193,ACT,ACT,A,-,FALSE,rs549139309 reversed
+chr22,15513911,TAGACCTG,T,chr22,16464044,CCAGGTCT,CCAGGTCT,C,-,FALSE,rs571268158 reversed
+chr22,16537622,C,"CCCTT,CCTCT,CCTTT",chr22,17018512,C,C,"CCCTT,CCTCT,CCTTT",+,FALSE,rs200449532
+chr22,16881861,G,T,chr22,17362751,G,T,T,+,TRUE,rs165673
+chr22,16949925,G,C,chr22,17430815,G,C,C,+,TRUE,rs5748758
+chr22,37349442,TC,"T,TCC",chr22,37745483,TC,T,"T,TCC",+,TRUE,reference deletion
+chr22,37349442,T,TC,chr22,37745483,TC,T,TCC,+,TRUE,reference deletion
+chr22,37430364,C,"CTATT,CA",chr22,37826396,C,CTATT,"CTATT,CA",+,TRUE,reference insertion
+chr22,37430364,C,CT,chr22,37826396,C,CTATT,CT,+,TRUE,reference insertion
+chr22,15281422,G,A,chr22,16696542,C,T,T,-,TRUE,rs1441088440 ref-changed
+chr22,15281639,A,AG,chr22,16696323,G,GC,GC,-,TRUE,reference insertion reversed
+chr22,15281639,A,AGT,chr22,16696323,G,GC,GAC,-,TRUE,reference insertion reversed
+chr22,15907954,AT,A,chr22,16069994,CA,C,C,-,TRUE,reference deletion reversed
+chr22,15907954,A,AT,chr22,16069994,CA,C,CAA,-,TRUE,reference deletion reversed
+chr22,15907954,A,AC,chr22,16070000,AA,A,AAG,-,TRUE,reference deletion reversed

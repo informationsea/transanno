@@ -1,8 +1,8 @@
 use super::Command;
-use crate::chain;
 use autocompress::{create, open};
 use bio::io::fasta::IndexedReader;
 use clap::{App, Arg, ArgMatches};
+use liftover::chain;
 use log::info;
 
 pub struct ChainLeftAlign;

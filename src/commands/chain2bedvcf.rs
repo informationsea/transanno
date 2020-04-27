@@ -1,11 +1,11 @@
 use super::Command;
-use crate::chain::{Chain, Strand};
 use crate::cli::validate_integer;
-use crate::defs::{reverse_acid, reverse_complement, GenomeSequence};
-use crate::LiftOverError;
 use autocompress::{create, open};
 use bio::io::fasta::IndexedReader;
 use clap::{App, Arg, ArgMatches};
+use liftover::chain::{Chain, Strand};
+use liftover::LiftOverError;
+use liftover::{reverse_acid, reverse_complement, GenomeSequence};
 use std::io::{self, Write};
 
 pub struct Chain2BedVcf;
@@ -124,7 +124,7 @@ fn chain_to_bed_vcf_helper(
     let mut query_sequence =
         IndexedReader::from_file(&query_sequence_path).expect("Cannot open query sequence");
     let chain_file =
-        crate::chain::ChainFile::load(open(chain_path).expect("Cannot open chain file"))
+        liftover::chain::ChainFile::load(open(chain_path).expect("Cannot open chain file"))
             .expect("Cannot parse chain file");
 
     let mut query_vcf_writer = create(query_vcf_path).expect("Cannot create Query VCF file");
@@ -512,37 +512,18 @@ fn write_vcf_header_for_sequence(
 mod test {
     use super::*;
     use std::fs;
-    #[test]
-    fn test_chain_to_bed_vcf_helper_test_seq() -> Result<(), LiftOverError> {
-        fs::create_dir_all("target/test-output/chain2bed")?;
-
-        chain_to_bed_vcf_helper(
-            "testfiles/lift-variant-test/sequence/seq-a--to--seq-b.chain.gz",
-            "testfiles/lift-variant-test/sequence/seq-a.fa",
-            "testfiles/lift-variant-test/sequence/seq-b.fa",
-            "target/test-output/chain2bed/chain-to-bed-vcf--seq-a.vcf",
-            "target/test-output/chain2bed/chain-to-bed-vcf--seq-b.vcf",
-            "target/test-output/chain2bed/chain-to-bed-vcf--seq-a.bed",
-            "target/test-output/chain2bed/chain-to-bed-vcf--seq-b.bed",
-            50,
-        )?;
-
-        // TODO: Check result
-
-        Ok(())
-    }
 
     #[test]
     fn test_chain_to_bed_vcf_helper_chr22() -> Result<(), LiftOverError> {
         fs::create_dir_all("target/test-output/chain2bed")?;
         chain_to_bed_vcf_helper(
-            "testfiles/hg19ToHg38/hg19ToHg38.over.chain.chr22",
-            "testfiles/genome/hg19-chr22.fa",
-            "testfiles/genome/hg38-chr22.fa",
-            "target/test-output/chain2bed/chain-to-bed-vcf--hg19.vcf",
-            "target/test-output/chain2bed/chain-to-bed-vcf--hg38.vcf",
-            "target/test-output/chain2bed/chain-to-bed-vcf--hg19.bed",
-            "target/test-output/chain2bed/chain-to-bed-vcf--hg38.bed",
+            "liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
+            "liftover-rs/testfiles/genomes/GRCh38/GRCh38.chr22.genome.fa",
+            "liftover-rs/testfiles/genomes/GRCh37/GRCh37.chr22.genome.fa",
+            "target/test-output/chain2bed/chain-to-bed-vcf--GRCh37.vcf",
+            "target/test-output/chain2bed/chain-to-bed-vcf--GRCh38.vcf",
+            "target/test-output/chain2bed/chain-to-bed-vcf--GRCh37.bed",
+            "target/test-output/chain2bed/chain-to-bed-vcf--GRCh38.bed",
             50,
         )?;
 

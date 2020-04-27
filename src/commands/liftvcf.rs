@@ -1,8 +1,9 @@
 use super::Command;
 use crate::cli::validate_integer;
-use crate::vcflift;
 use autocompress::{create, open};
+use bio::io::fasta::IndexedReader;
 use clap::{App, Arg, ArgMatches};
+use liftover::{chain, variantlift, vcflift};
 use log::info;
 
 pub struct LiftVcf;
@@ -121,10 +122,15 @@ impl Command for LiftVcf {
     }
     fn run(&self, matches: &ArgMatches<'static>) -> Result<(), crate::LiftOverError> {
         info!("start loading chain and fasta");
-        let mut vcf_lift = vcflift::VCFLiftOver::load(
-            matches.value_of("chain").unwrap(),
-            matches.value_of("reference_sequence").unwrap(),
-            matches.value_of("query_sequence").unwrap(),
+        let mut reference_seq =
+            IndexedReader::from_file(&matches.value_of("reference_sequence").unwrap())?;
+        let mut query_seq = IndexedReader::from_file(&matches.value_of("query_sequence").unwrap())?;
+        let chain =
+            chain::ChainFile::load(autocompress::open(matches.value_of("chain").unwrap())?)?
+                .left_align(&mut reference_seq, &mut query_seq)?;
+        let variant_liftover = variantlift::VariantLiftOver::new(chain, reference_seq, query_seq);
+        let mut vcf_lift = vcflift::VCFLiftOver::new(
+            variant_liftover,
             vcflift::VCFLiftOverParameters::new()
                 .allow_multimap(matches.is_present("allow-multimap"))
                 .acceptable_deletion(
@@ -156,8 +162,7 @@ impl Command for LiftVcf {
                 .do_not_prefer_cis_contig_when_multimap(
                     matches.is_present("do_not_prefer_cis_contig_when_multimap"),
                 ),
-        )
-        .expect("Cannot load chain/FASTA file");
+        );
         info!("chain file and fasta files were loaded");
 
         let uncompressed_reader =

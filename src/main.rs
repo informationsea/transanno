@@ -2,21 +2,10 @@
 extern crate lazy_static;
 extern crate failure;
 
-pub mod chain;
 mod cli;
 pub mod commands;
-mod defs;
-mod error;
-pub mod genelift;
-pub mod geneparse;
-pub mod normalize;
-pub mod poslift;
-pub mod variantlift;
-pub mod vcflift;
-pub mod vcfparse;
 
-pub use defs::*;
-pub use error::{LiftOverError, LiftOverErrorKind};
+pub use liftover::{LiftOverError, LiftOverErrorKind};
 use std::env;
 
 fn main() {

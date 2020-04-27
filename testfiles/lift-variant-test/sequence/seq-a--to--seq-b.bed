@@ -1,5 +1,0 @@
-track name="test chain alignment" description="test chain alignment" visibility=2 itemRgb="On"
-seq-a	30406	42392	chain:-seq-b:22795-34781	0	-	30406	42392	0,104,183
-seq-a	18420	30406	chain:-seq-b:22795-34781	0	-	18420	30406	0,104,183
-seq-a	9905	18421	chain:+seq-b:5765-14281	0	+	9905	18421	0,104,183
-seq-a	9904	18420	chain:+seq-b:14279-22795	0	+	9904	18420	0,104,183

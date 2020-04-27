@@ -1,0 +1,10 @@
+GRCh38.primary_assembly.genome.fa.gz
+GRCh37.primary_assembly.genome.fa.gz
+GRCh38.chr22.genome.fa
+GRCh37.chr22.genome.fa
+GRCh37.chr22.revcomp.genome.fa
+minimap2-2.17_x64-linux
+minimap2-2.17_x64-linux.tar.bz2
+minimap2
+*.vcf
+liftOver
