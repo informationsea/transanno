@@ -223,11 +223,11 @@ impl GeneLiftOver {
         // If length of lifted feature was 50% smaller than original length, mark as failed.
         if lifted_region_no_filter
             .iter()
-            .all(|x| lower_limit >= x.len())
+            .all(|x| lower_limit > x.len())
         {
             if let Some(region) = lifted_region_no_filter
                 .iter()
-                .find(|x| lower_limit >= x.len())
+                .find(|x| lower_limit > x.len())
             {
                 let e = FeatureLiftError::TooSmallLiftedRegion(region.end - region.start);
                 return Err(e);
@@ -237,11 +237,11 @@ impl GeneLiftOver {
         // If length of lifted feature was 150% larger than original length, mark as failed.
         if lifted_region_no_filter
             .iter()
-            .all(|x| upper_limit <= x.len())
+            .all(|x| upper_limit < x.len())
         {
             if let Some(region) = lifted_region_no_filter
                 .iter()
-                .find(|x| upper_limit <= x.len())
+                .find(|x| upper_limit < x.len())
             {
                 let e = FeatureLiftError::TooLargeLiftedRegion(region.len());
                 return Err(e);
@@ -488,7 +488,7 @@ impl GeneLiftOver {
         let upper_limit = (feature.end() - feature.start()) * 3 / 2;
         let lower_limit = (feature.end() - feature.start()) / 2;
         // If length of transcript was 150% larger than original length, mark as failed.
-        if upper_limit <= new_end - new_start {
+        if upper_limit < new_end - new_start {
             return Err(TranscriptLiftError {
                 error: FeatureLiftError::TooLargeLiftedRegion(new_end - new_start),
                 transcript: feature,
@@ -497,7 +497,7 @@ impl GeneLiftOver {
             });
         }
         // If length of transcript was 50% smaller than original length, mark as failed.
-        if lower_limit >= new_end - new_start {
+        if lower_limit > new_end - new_start {
             return Err(TranscriptLiftError {
                 error: FeatureLiftError::TooSmallLiftedRegion(new_end - new_start),
                 transcript: feature,
