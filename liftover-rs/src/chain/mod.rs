@@ -317,6 +317,11 @@ impl ChainFile {
                 break;
             }
             let trim_line = line.trim();
+
+            if trim_line.starts_with('#') {
+                // Skip comment line
+                continue;
+            }
             //println!("line {}({:?}): {}", line_num, status, trim_line);
             match status {
                 LiftOverReadStatus::Outside => {
