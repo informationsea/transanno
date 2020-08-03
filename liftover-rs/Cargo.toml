@@ -8,17 +8,16 @@ edition = "2018"
 
 [dependencies]
 bio = "0.30"
-flate2 = "1"
 regex = "1"
 lazy_static = "1"
 failure = "0.1"
 indexmap = "1"
 csv = "1"
-clap = "2"
 log = "0.4"
 nom = "5"
 serde = "1"
 
 [dev-dependencies]
+flate2 = "1"
 serde_json = "1"
 autocompress = "0.1"
