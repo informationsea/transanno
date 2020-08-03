@@ -204,14 +204,14 @@ mod test {
 
     #[test]
     fn test_lift_gff3() -> Result<(), LiftOverError> {
-        fs::create_dir_all("target/test-output/gene")?;
+        fs::create_dir_all("../target/test-output/gene")?;
 
         lift_gene_helper(
-            "liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
-            "liftover-rs/testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gff3.xz",
+            "../liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
+            "../liftover-rs/testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gff3.xz",
             "auto",
-            "target/test-output/gene/gff-lift-gencode.v33.basic.annotation.chr22.mapped.gff3.gz",
-            "target/test-output/gene/gff-lift-gencode.v33.basic.annotation.chr22.failed.gff3.gz",
+            "../target/test-output/gene/gff-lift-gencode.v33.basic.annotation.chr22.mapped.gff3.gz",
+            "../target/test-output/gene/gff-lift-gencode.v33.basic.annotation.chr22.failed.gff3.gz",
         )?;
 
         Ok(())
@@ -219,14 +219,14 @@ mod test {
 
     #[test]
     fn test_lift_gtf() -> Result<(), LiftOverError> {
-        fs::create_dir_all("target/test-output/gene")?;
+        fs::create_dir_all("../target/test-output/gene")?;
 
         lift_gene_helper(
-            "liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
-            "liftover-rs/testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gtf.xz",
+            "../liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
+            "../liftover-rs/testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gtf.xz",
             "gtf",
-            "target/test-output/gene/gff-lift-gencode.v33.annotation.chr22.mapped.gtf.gz",
-            "target/test-output/gene/gff-lift-gencode.v33.annotation.chr22.failed.gtf.gz",
+            "../target/test-output/gene/gff-lift-gencode.v33.annotation.chr22.mapped.gtf.gz",
+            "../target/test-output/gene/gff-lift-gencode.v33.annotation.chr22.failed.gtf.gz",
         )?;
 
         Ok(())
@@ -234,14 +234,14 @@ mod test {
 
     #[test]
     fn test_lift_gff3_ensemble() -> Result<(), LiftOverError> {
-        fs::create_dir_all("target/test-output/gene")?;
+        fs::create_dir_all("../target/test-output/gene")?;
 
         lift_gene_helper(
-            "liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
-            "liftover-rs/testfiles/GENCODE/Homo_sapiens.GRCh38.99.ensembl.chr22.gff3.xz",
+            "../liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
+            "../liftover-rs/testfiles/GENCODE/Homo_sapiens.GRCh38.99.ensembl.chr22.gff3.xz",
             "auto",
-            "target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.mapped.gff3.gz",
-            "target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.failed.gff3.gz",
+            "../target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.mapped.gff3.gz",
+            "../target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.failed.gff3.gz",
         )?;
 
         Ok(())
@@ -249,14 +249,14 @@ mod test {
 
     #[test]
     fn test_lift_gtf_ensemble() -> Result<(), LiftOverError> {
-        fs::create_dir_all("target/test-output/gene")?;
+        fs::create_dir_all("../target/test-output/gene")?;
 
         lift_gene_helper(
-            "liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
-            "liftover-rs/testfiles/GENCODE/Homo_sapiens.GRCh38.99.ensembl.chr22.gff3.xz",
+            "../liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
+            "../liftover-rs/testfiles/GENCODE/Homo_sapiens.GRCh38.99.ensembl.chr22.gff3.xz",
             "auto",
-            "target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.mapped.gtf.gz",
-            "target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.failed.gtf.gz",
+            "../target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.mapped.gtf.gz",
+            "../target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.failed.gtf.gz",
         )?;
 
         Ok(())

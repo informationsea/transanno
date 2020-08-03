@@ -196,11 +196,11 @@ mod test {
 
     #[test]
     fn test_minimap2chain() -> Result<(), LiftOverError> {
-        fs::create_dir_all("target/test-output/minimap2chain/")?;
+        fs::create_dir_all("../target/test-output/minimap2chain/")?;
 
         minimap2_to_chain_helper(
-            "liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.paf",
-            "target/test-output/minimap2chain/GRCh38-to-GRCh37.chain",
+            "../liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.paf",
+            "../target/test-output/minimap2chain/GRCh38-to-GRCh37.chain",
         )?;
         // TODO check result
 

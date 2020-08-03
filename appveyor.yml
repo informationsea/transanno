@@ -38,10 +38,6 @@ test_script:
       7z e liftover-rs\testfiles\genomes\GRCh37\GRCh37.chr22.genome.fa.xz -oliftover-rs\testfiles\genomes\GRCh37 &&
       7z e liftover-rs\testfiles\genomes\GRCh37\GRCh37.chr22.revcomp.genome.fa.xz -oliftover-rs\testfiles\genomes\GRCh37 &&
       7z e liftover-rs\testfiles\genomes\GRCh38\GRCh38.chr22.genome.fa.xz -oliftover-rs\testfiles\genomes\GRCh38 &&
-      pushd liftover-rs &&
-      cargo build --target %TARGET% --release &&
-      cargo test --target %TARGET% --release &&
-      popd &&
       cargo build --target %TARGET% --release &&
       cargo test --target %TARGET% --release
     )

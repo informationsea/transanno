@@ -515,15 +515,15 @@ mod test {
 
     #[test]
     fn test_chain_to_bed_vcf_helper_chr22() -> Result<(), LiftOverError> {
-        fs::create_dir_all("target/test-output/chain2bed")?;
+        fs::create_dir_all("../target/test-output/chain2bed")?;
         chain_to_bed_vcf_helper(
-            "liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
-            "liftover-rs/testfiles/genomes/GRCh38/GRCh38.chr22.genome.fa",
-            "liftover-rs/testfiles/genomes/GRCh37/GRCh37.chr22.genome.fa",
-            "target/test-output/chain2bed/chain-to-bed-vcf--GRCh37.vcf",
-            "target/test-output/chain2bed/chain-to-bed-vcf--GRCh38.vcf",
-            "target/test-output/chain2bed/chain-to-bed-vcf--GRCh37.bed",
-            "target/test-output/chain2bed/chain-to-bed-vcf--GRCh38.bed",
+            "../liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
+            "../liftover-rs/testfiles/genomes/GRCh38/GRCh38.chr22.genome.fa",
+            "../liftover-rs/testfiles/genomes/GRCh37/GRCh37.chr22.genome.fa",
+            "../target/test-output/chain2bed/chain-to-bed-vcf--GRCh37.vcf",
+            "../target/test-output/chain2bed/chain-to-bed-vcf--GRCh38.vcf",
+            "../target/test-output/chain2bed/chain-to-bed-vcf--GRCh37.bed",
+            "../target/test-output/chain2bed/chain-to-bed-vcf--GRCh38.bed",
             50,
         )?;
 

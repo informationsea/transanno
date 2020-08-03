@@ -11,11 +11,7 @@ main() {
 
     if [ ! -z $DISABLE_TESTS ]; then
         return
-    fi
-
-    pushd liftover-rs
-    cargo test --target $TARGET --release
-    popd    
+    fi  
 
     cargo test --target $TARGET --release
     rm -rf target/test-output
