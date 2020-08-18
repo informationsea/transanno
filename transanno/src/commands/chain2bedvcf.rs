@@ -281,8 +281,11 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
             reference_vcf_writer.write_all(&[*(one_position.1).1])?;
             writeln!(
                 reference_vcf_writer,
-                "\t.\t.\tTARGET_CHROM={};TARGET_POS={}",
-                one_chain.query_chromosome.name, query_vcf_pos
+                "\t.\t.\tTARGET_CHROM={};TARGET_POS={};CHAIN_ID={};STRAND={}",
+                one_chain.query_chromosome.name,
+                query_vcf_pos,
+                one_chain.chain_id,
+                one_chain.query_strand
             )?;
 
             // write query VCF
@@ -305,9 +308,11 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
             }
             writeln!(
                 query_vcf_writer,
-                "\t.\t.\tTARGET_CHROM={};TARGET_POS={}",
+                "\t.\t.\tTARGET_CHROM={};TARGET_POS={};CHAIN_ID={};STRAND={}",
                 one_chain.reference_chromosome.name,
-                one_position.0 as u64 + reference_current + 1
+                one_position.0 as u64 + reference_current + 1,
+                one_chain.chain_id,
+                one_chain.query_strand
             )?;
         }
 
@@ -363,12 +368,12 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
                 // write as SV
 
                 // write Reference VCF
-                let sv_type = if reference_sequence_data.len() == 1 {
-                    "INS"
+                let (sv_type, sv_len) = if reference_sequence_data.len() == 1 {
+                    ("INS", query_sequence_data.len())
                 } else if query_sequence_data.len() == 1 {
-                    "DEL"
+                    ("DEL", reference_sequence_data.len())
                 } else {
-                    "INDEL"
+                    ("INDEL", reference_sequence_data.len())
                 };
 
                 write!(
@@ -380,13 +385,15 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
                 reference_vcf_writer.write_all(&reference_sequence_data[0..1])?;
                 writeln!(
                     reference_vcf_writer,
-                    "\t<{}>\t.\t.\tEND={};TARGET_CHROM={};TARGET_POS={};SVTYPE={};SVLEN={}",
+                    "\t<{}>\t.\t.\tEND={};TARGET_CHROM={};TARGET_POS={};SVTYPE={};SVLEN={};CHAIN_ID={};STRAND={}",
                     sv_type,
                     reference_current + reference_sequence_data.len() as u64,
                     one_chain.query_chromosome.name,
                     query_vcf_pos,
                     sv_type,
-                    query_sequence_data.len()
+                    sv_len,
+                    one_chain.chain_id,
+                    one_chain.query_strand
                 )?;
 
                 // Write Query VCF
@@ -410,13 +417,15 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
                 query_vcf_writer.write_all(&query_vcf_ref[0..1])?;
                 writeln!(
                     query_vcf_writer,
-                    "\t<{}>\t.\t.\tEND={};TARGET_CHROM={};TARGET_POS={};SVTYPE={};SVLEN={}",
+                    "\t<{}>\t.\t.\tEND={};TARGET_CHROM={};TARGET_POS={};SVTYPE={};SVLEN={};CHAIN_ID={};STRAND={}",
                     sv_type_query,
-                    query_current + query_vcf_ref.len() as u64,
+                    query_vcf_pos + query_vcf_ref.len() as u64,
                     one_chain.reference_chromosome.name,
                     query_vcf_pos,
                     sv_type_query,
-                    reference_sequence_data.len()
+                    sv_len,
+                    one_chain.chain_id,
+                    one_chain.query_strand
                 )?;
             } else {
                 write!(
@@ -430,8 +439,11 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
                 reference_vcf_writer.write_all(&query_sequence_data)?;
                 writeln!(
                     reference_vcf_writer,
-                    "\t.\t.\tTARGET_CHROM={};TARGET_POS={}",
-                    one_chain.query_chromosome.name, query_vcf_pos
+                    "\t.\t.\tTARGET_CHROM={};TARGET_POS={};CHAIN_ID={};STRAND={}",
+                    one_chain.query_chromosome.name,
+                    query_vcf_pos,
+                    one_chain.chain_id,
+                    one_chain.query_strand
                 )?;
 
                 // Write Query VCF
@@ -453,9 +465,11 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
                 query_vcf_writer.write_all(&query_vcf_alt)?;
                 writeln!(
                     query_vcf_writer,
-                    "\t.\t.\tTARGET_CHROM={};TARGET_POS={}",
+                    "\t.\t.\tTARGET_CHROM={};TARGET_POS={};CHAIN_ID={};STRAND={}",
                     one_chain.reference_chromosome.name,
-                    reference_current + 1
+                    reference_current + 1,
+                    one_chain.chain_id,
+                    one_chain.query_strand
                 )?;
             }
         }

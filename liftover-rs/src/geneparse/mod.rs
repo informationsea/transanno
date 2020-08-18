@@ -304,18 +304,18 @@ mod test {
         assert_eq!(x.range(), 99..120);
         assert_eq!(x.is_empty(), false);
 
-        x.set_range(10..10);
+        x.set_range(10..11);
         assert_eq!(
             x,
             TestFeature {
                 seq_id: "chr22".to_string(),
                 start: 11,
-                end: 10,
+                end: 11,
                 strand: GeneStrand::Forward,
                 feature_type: FeatureType::Exon,
             }
         );
-        assert_eq!(x.is_empty(), true);
-        assert_eq!(x.len(), 0);
+        assert_eq!(x.is_empty(), false);
+        assert_eq!(x.len(), 1);
     }
 }

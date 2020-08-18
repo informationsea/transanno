@@ -4,6 +4,8 @@
 ##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
 ##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
 ##INFO=<ID=SVLEN,Number=1,Type=Integer,Description="length of alternative allele">
+##INFO=<ID=CHAIN_ID,Number=1,Type=String,Description="Chain ID">
+##INFO=<ID=STRAND,Number=1,Type=String,Description="Chain Strand">
 ##ALT=<ID=DEL,Description="Deletion">
 ##ALT=<ID=INS,Description="Insertion of novel sequence">
 ##ALT=<ID=INDEL,Description="Deletion and Insertion of novel sequence">
