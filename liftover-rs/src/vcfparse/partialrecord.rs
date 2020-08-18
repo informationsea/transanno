@@ -266,7 +266,7 @@ fn parse_vcf_internal<'a>(
         let (input, _) = tag(b"\t")(input)?; // consume tab
         take_till(|c: u8| c == b'\t' || c == b'\n')(input)?
     } else {
-        (input, &input[0..0])
+        (input, &[][..])
     };
 
     // FILTER
@@ -274,7 +274,7 @@ fn parse_vcf_internal<'a>(
         let (input, _) = tag(b"\t")(input)?; // consume tab
         take_till(|c: u8| c == b'\t' || c == b'\n')(input)?
     } else {
-        (input, &input[0..0])
+        (input, &[][..])
     };
 
     // INFO
@@ -282,7 +282,7 @@ fn parse_vcf_internal<'a>(
         let (input, _) = tag(b"\t")(input)?; // consume tab
         take_till(|c: u8| c == b'\t' || c == b'\n')(input)?
     } else {
-        (input, &input[0..0])
+        (input, &[][..])
     };
 
     // FORMAT/CALL
@@ -290,7 +290,7 @@ fn parse_vcf_internal<'a>(
         let (input, _) = tag(b"\t")(input)?; // consume tab
         take_while(|c: u8| c != b'\n')(input)?
     } else {
-        (input, &input[0..0])
+        (input, &[][..])
     };
     let (_input, _) = tag(b"\n")(input)?;
 
