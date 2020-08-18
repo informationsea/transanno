@@ -617,10 +617,10 @@ fn test_gff3_real_check2() -> Result<(), FeatureLiftError> {
     )));
     let gene_lift = load_hg38_to_hg19_lift();
 
-    fs::create_dir_all("target/test-output/gene").unwrap();
+    fs::create_dir_all("../target/test-output/gene").unwrap();
 
     let mut writer =
-        create("./target/test-output/gene/gencode.v30.basic.annotation.CHEK2-MCHR1-lifted.gff3")
+        create("../target/test-output/gene/gencode.v30.basic.annotation.CHEK2-MCHR1-lifted.gff3")
             .unwrap();
     for one in gff3_genes {
         let one = one.unwrap();
@@ -653,7 +653,7 @@ fn test_gff3_real_check2() -> Result<(), FeatureLiftError> {
 
 #[test]
 fn test_gtf_real_check2() -> Result<(), FeatureLiftError> {
-    fs::create_dir_all("target/test-output/gene").unwrap();
+    fs::create_dir_all("../target/test-output/gene").unwrap();
 
     let gtf_data =
         &include_bytes!("../../testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gtf.xz")[..];
@@ -662,7 +662,7 @@ fn test_gtf_real_check2() -> Result<(), FeatureLiftError> {
     )));
     let gene_lift = load_hg38_to_hg19_lift();
     let mut writer =
-        create("./target/test-output/gene/gencode.v31.annotation.CHEK2-MCHR1-lifted.gff3").unwrap();
+        create("../target/test-output/gene/gencode.v31.annotation.CHEK2-MCHR1-lifted.gff3").unwrap();
     for one in gtf_genes {
         let one = one.unwrap();
         match gene_lift.lift_gene_feature(&one) {

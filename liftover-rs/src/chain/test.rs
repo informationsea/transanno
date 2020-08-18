@@ -131,11 +131,13 @@ fn test_normalize_chain_file() -> Result<(), LiftOverError> {
     //     str::from_utf8(&buffer).unwrap()
     // );
 
-    let mut test_writer = File::create("target/write-test.chain")?;
+    std::fs::create_dir_all("../target/test-output/")?;
+
+    let mut test_writer = File::create("../target/test-output/write-test.chain")?;
     test_chain.write(&mut test_writer)?;
 
     let left_aligned_chain = test_chain.left_align(&mut reference, &mut query)?;
-    let mut test_writer = File::create("target/write-test2.chain")?;
+    let mut test_writer = File::create("../target/test-output/write-test2.chain")?;
     left_aligned_chain.write(&mut test_writer)?;
 
     assert_eq!(
