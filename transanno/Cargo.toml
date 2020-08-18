@@ -1,6 +1,6 @@
 [package]
 name = "transanno"
-version = "0.2.3"
+version = "0.2.4"
 authors = ["OKAMURA Yasunobu <okamura@informationsea.info>"]
 edition = "2018"
 build = "build.rs"
