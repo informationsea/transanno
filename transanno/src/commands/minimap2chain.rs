@@ -1,5 +1,5 @@
 use super::Command;
-use autocompress::{create, open};
+use autocompress::{create, open, CompressionLevel};
 use clap::{App, Arg, ArgMatches};
 use regex::Regex;
 use std::io::{self, BufRead, Write};
@@ -60,7 +60,8 @@ pub fn minimap2_to_chain(matches: &ArgMatches) {
 
 fn minimap2_to_chain_helper(paf_path: &str, chain_path: &str) -> io::Result<()> {
     let mut paf_file = io::BufReader::new(open(paf_path).expect("Cannot open paf file"));
-    let mut chain_file = create(chain_path).expect("Cannot create chain file");
+    let mut chain_file =
+        create(chain_path, CompressionLevel::Default).expect("Cannot create chain file");
 
     let mut count = 0;
     loop {

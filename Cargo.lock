@@ -84,13 +84,15 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
 name = "autocompress"
-version = "0.1.0"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c70b03bff62c7cc73b2abc922642ce054dccf71d7d5f7d3b57faea225d61b0c"
+checksum = "a4ff3d9bdee5aab54d23c2e81bd5cd04e59e6fdfd5c031bbd03d8a55b26bf29a"
 dependencies = [
  "brotli",
  "bzip2",
+ "crossbeam-channel",
  "flate2",
+ "log",
  "lz4",
  "snap",
  "xz2",
@@ -240,9 +242,9 @@ checksum = "14c189c53d098945499cdfa7ecc63567cf3886b3332b312a5b4585d8d3a6a610"
 
 [[package]]
 name = "bzip2"
-version = "0.3.3"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42b7c3cbf0fa9c1b82308d57191728ca0256cb821220f4e2fd410a72ade26e3b"
+checksum = "6afcd980b5f3a45017c57e57a2fcccbb351cc43a356ce117ef760ef8052b89b0"
 dependencies = [
  "bzip2-sys",
  "libc",
@@ -309,6 +311,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81156fece84ab6a9f2afdb109ce3ae577e42b1228441eded99bd77f627953b1a"
 dependencies = [
  "cfg-if",
+]
+
+[[package]]
+name = "crossbeam-channel"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "06ed27e177f16d65f0f0c22a213e17c696ace5dd64b14258b52f9417ccb52db4"
+dependencies = [
+ "cfg-if",
+ "crossbeam-utils",
+]
+
+[[package]]
+name = "crossbeam-utils"
+version = "0.8.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d82cfc11ce7f2c3faef78d8a684447b40d503d9681acebed6cb728d45940c4db"
+dependencies = [
+ "cfg-if",
+ "lazy_static",
 ]
 
 [[package]]
@@ -463,12 +485,6 @@ name = "gimli"
 version = "0.25.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f0a01e0497841a3b2db4f8afa483cce65f7e96a3498bd6c541734792aeac8fe7"
-
-[[package]]
-name = "glob"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b919933a397b79c37e33b77bb2aa3dc8eb6e165ad809e58ff75bc7db2e34574"
 
 [[package]]
 name = "hashbrown"
@@ -1190,18 +1206,18 @@ dependencies = [
 
 [[package]]
 name = "zstd"
-version = "0.5.4+zstd.1.4.7"
+version = "0.9.0+zstd.1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69996ebdb1ba8b1517f61387a883857818a66c8a295f487b1ffd8fd9d2c82910"
+checksum = "07749a5dc2cb6b36661290245e350f15ec3bbb304e493db54a1d354480522ccd"
 dependencies = [
  "zstd-safe",
 ]
 
 [[package]]
 name = "zstd-safe"
-version = "2.0.6+zstd.1.4.7"
+version = "4.1.1+zstd.1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "98aa931fb69ecee256d44589d19754e61851ae4769bf963b385119b1cc37a49e"
+checksum = "c91c90f2c593b003603e5e0493c837088df4469da25aafff8bce42ba48caf079"
 dependencies = [
  "libc",
  "zstd-sys",
@@ -1209,12 +1225,10 @@ dependencies = [
 
 [[package]]
 name = "zstd-sys"
-version = "1.4.18+zstd.1.4.7"
+version = "1.6.1+zstd.1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1e6e8778706838f43f771d80d37787cb2fe06dafe89dd3aebaf6721b9eaec81"
+checksum = "615120c7a2431d16cf1cf979e7fc31ba7a5b5e5707b29c8a99e5dbf8a8392a33"
 dependencies = [
  "cc",
- "glob",
- "itertools",
  "libc",
 ]

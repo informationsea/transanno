@@ -1,5 +1,5 @@
 use super::Command;
-use autocompress::{create, open};
+use autocompress::{create, open, CompressionLevel};
 use clap::{App, Arg, ArgMatches};
 use liftover::genelift::GeneLiftOver;
 use liftover::geneparse::gff3::{Gff3GroupedReader, Gff3Reader};
@@ -95,8 +95,8 @@ fn lift_gene_helper(
 ) -> Result<(), LiftOverError> {
     let chain_file = PositionLiftOver::load(open(chain_path)?)?;
     let gene_lift = GeneLiftOver::new(chain_file);
-    let mut writer = io::BufWriter::new(create(output)?);
-    let mut failed_writer = io::BufWriter::new(create(failed)?);
+    let mut writer = io::BufWriter::new(create(output, CompressionLevel::Default)?);
+    let mut failed_writer = io::BufWriter::new(create(failed, CompressionLevel::Default)?);
 
     let format = match format {
         "GFF3" | "gff3" => Format::GFF3,

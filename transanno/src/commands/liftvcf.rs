@@ -1,6 +1,6 @@
 use super::Command;
 use crate::cli::validate_integer;
-use autocompress::{create, open};
+use autocompress::{create, open, CompressionLevel};
 use bio::io::fasta::IndexedReader;
 use clap::{App, Arg, ArgMatches};
 use liftover::{chain, variantlift, vcflift};
@@ -167,9 +167,12 @@ impl Command for LiftVcf {
 
         let uncompressed_reader =
             open(matches.value_of("vcf").unwrap()).expect("Cannot open input VCF");
-        let success_writer =
-            create(matches.value_of("output").unwrap()).expect("Cannot create output VCF");
-        let failed_writer = create(matches.value_of("fail").unwrap())
+        let success_writer = create(
+            matches.value_of("output").unwrap(),
+            CompressionLevel::Default,
+        )
+        .expect("Cannot create output VCF");
+        let failed_writer = create(matches.value_of("fail").unwrap(), CompressionLevel::Default)
             .expect("Cannot create output VCF for failed records");
         vcf_lift.lift_vcf(uncompressed_reader, success_writer, failed_writer)
     }

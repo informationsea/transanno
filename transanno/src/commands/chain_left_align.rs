@@ -1,5 +1,5 @@
 use super::Command;
-use autocompress::{create, open};
+use autocompress::{create, open, CompressionLevel};
 use bio::io::fasta::IndexedReader;
 use clap::{App, Arg, ArgMatches};
 use liftover::chain;
@@ -49,8 +49,11 @@ impl Command for ChainLeftAlign {
         info!("start loading chain");
         let chain_file = open(matches.value_of("original-chain").unwrap())
             .expect("Cannot open input chain file");
-        let mut output_file =
-            create(matches.value_of("output").unwrap()).expect("Cannot open output chain file");
+        let mut output_file = create(
+            matches.value_of("output").unwrap(),
+            CompressionLevel::Default,
+        )
+        .expect("Cannot open output chain file");
         let mut reference_seq =
             IndexedReader::from_file(&matches.value_of("reference_sequence").unwrap())
                 .expect("Cannot load reference sequence");
