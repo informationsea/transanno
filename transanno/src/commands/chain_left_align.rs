@@ -9,7 +9,7 @@ pub struct ChainLeftAlign;
 
 impl Command for ChainLeftAlign {
     fn command_name(&self) -> &'static str {
-        "minimap2chain"
+        "left-align"
     }
     fn config_subcommand(&self, app: App<'static, 'static>) -> App<'static, 'static> {
         app.about("Left align and normalize chain file")
