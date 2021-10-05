@@ -6,7 +6,7 @@ edition = "2018"
 build = "build.rs"
 
 [dependencies]
-bio = "0.30"
+bio = "0.38"
 flate2 = "1"
 regex = "1"
 lazy_static = "1"

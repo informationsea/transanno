@@ -95,7 +95,7 @@ fn test_load() -> Result<(), LiftOverError> {
 }
 
 #[test]
-fn test_normalize_chain_file() -> Result<(), LiftOverError> {
+fn test_normalize_chain_file() -> anyhow::Result<()> {
     let test_chain = ChainFile::load(&include_bytes!("before-normalize.chain")[..])?;
     let mut reference =
         IndexedReader::from_file(&"testfiles/genomes/GRCh38/GRCh38.chr22.genome.fa")?;

@@ -1,6 +1,7 @@
 use super::LiftOverError;
 use crate::vcfparse::VCFRecord;
 use bio::io::fasta::IndexedReader;
+use log::trace;
 use std::fmt;
 use std::io::{Read, Seek};
 use std::str;
@@ -38,7 +39,9 @@ impl<R: Seek + Read + fmt::Debug> GenomeSequence for IndexedReader<R> {
     ) -> Result<(), LiftOverError> {
         self.fetch(chromosome, start, stop)
             .map_err(|e| LiftOverError::UnknownSequenceError(chromosome.to_string(), e))?;
+        trace!("Sequence fetch: {}:{}-{}", chromosome, start, stop);
         self.read(text)?;
+        trace!("fetch OK");
         for x in text.iter_mut() {
             *x = match x {
                 b'a' => b'A',

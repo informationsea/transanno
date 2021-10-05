@@ -58,14 +58,15 @@ impl Command for LiftGene {
                     .help("Failed to liftOver GFF3/GTF output path"),
             )
     }
-    fn run(&self, matches: &ArgMatches<'static>) -> Result<(), crate::LiftOverError> {
+    fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()> {
         lift_gene_helper(
             matches.value_of("chain").unwrap(),
             matches.value_of("gff").unwrap(),
             matches.value_of("format").unwrap(),
             matches.value_of("output").unwrap(),
             matches.value_of("failed").unwrap(),
-        )
+        )?;
+        Ok(())
     }
 }
 

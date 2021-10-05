@@ -11,6 +11,7 @@ impl Command for ChainLeftAlign {
     fn command_name(&self) -> &'static str {
         "left-align"
     }
+
     fn config_subcommand(&self, app: App<'static, 'static>) -> App<'static, 'static> {
         app.about("Left align and normalize chain file")
             .arg(
@@ -31,21 +32,24 @@ impl Command for ChainLeftAlign {
             .arg(
                 Arg::with_name("reference_sequence")
                     .long("reference")
+                    .alias("new")
                     .short("r")
                     .takes_value(true)
                     .required(true)
-                    .help("Reference FASTA (.fai file is required)"),
+                    .help("Reference/New FASTA (.fai file is required)"),
             )
             .arg(
                 Arg::with_name("query_sequence")
                     .long("query")
+                    .alias("original")
                     .short("q")
                     .takes_value(true)
                     .required(true)
-                    .help("Query FASTA (.fai file is required)"),
+                    .help("Query/Original FASTA (.fai file is required)"),
             )
     }
-    fn run(&self, matches: &ArgMatches<'static>) -> Result<(), crate::LiftOverError> {
+
+    fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()> {
         info!("start loading chain");
         let chain_file = open(matches.value_of("original-chain").unwrap())
             .expect("Cannot open input chain file");
@@ -60,9 +64,7 @@ impl Command for ChainLeftAlign {
         let mut query_seq = IndexedReader::from_file(&matches.value_of("query_sequence").unwrap())
             .expect("Cannot load query sequence");
         let chain_data = chain::ChainFile::load(chain_file).expect("Failed to parse chain file");
-        let left_aligned = chain_data
-            .left_align(&mut reference_seq, &mut query_seq)
-            .expect("Failed to left align");
+        let left_aligned = chain_data.left_align(&mut reference_seq, &mut query_seq)?;
         left_aligned.write(&mut output_file)?;
         Ok(())
     }

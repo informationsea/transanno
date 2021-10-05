@@ -72,7 +72,7 @@ impl LiftVariantExpected {
 }
 
 #[test]
-fn test_lift_variant() -> Result<(), LiftOverError> {
+fn test_lift_variant() -> anyhow::Result<()> {
     let mut reference_fasta = bio::io::fasta::IndexedReader::from_file(
         &"testfiles/genomes/GRCh38/GRCh38.chr22.genome.fa",
     )?;

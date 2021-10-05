@@ -18,7 +18,7 @@ impl Command for GenerateCompletions {
                 .takes_value(true),
         )
     }
-    fn run(&self, matches: &ArgMatches<'static>) -> Result<(), crate::LiftOverError> {
+    fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()> {
         let outdir = matches.value_of("output").unwrap();
         fs::create_dir_all(&outdir).expect("Cannot create output directory");
         let mut app = cli::build_cli();

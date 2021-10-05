@@ -139,7 +139,13 @@ impl Chain {
         let mut current_query = self.query_start;
         let mut remain_size = 0;
 
-        for one_interval in self.chain_interval.iter() {
+        for (i, one_interval) in self.chain_interval.iter().enumerate() {
+            trace!(
+                "working {}/{} - {:?}",
+                i,
+                self.chain_interval.len(),
+                one_interval
+            );
             if one_interval.difference_query.unwrap_or(0) == 1
                 && one_interval.difference_reference.unwrap_or(0) == 1
             {
@@ -151,7 +157,8 @@ impl Chain {
             let next_reference = current_reference + one_interval.size + remain_size;
             let next_query = current_query + one_interval.size + remain_size;
             trace!(
-                "next reference: {} - {} {} {}",
+                "next reference: {}:{} - {} {} {}",
+                &self.reference_chromosome.name,
                 next_reference,
                 current_reference,
                 one_interval.size,
@@ -163,6 +170,31 @@ impl Chain {
                 next_reference,
                 next_reference + one_interval.difference_reference.unwrap_or(0),
             )?;
+
+            match self.query_strand {
+                Strand::Forward => {
+                    trace!(
+                        "next query+: {}:{} - {} {} {}",
+                        &self.query_chromosome.name,
+                        next_query,
+                        next_query + one_interval.difference_query.unwrap_or(0),
+                        one_interval.size,
+                        remain_size
+                    );
+                }
+                Strand::Reverse => {
+                    trace!(
+                        "next query-: {}:{} - {} {} {}",
+                        &self.query_chromosome.name,
+                        self.query_chromosome.length
+                            - (next_query + one_interval.difference_query.unwrap_or(0)),
+                        self.query_chromosome.length - next_query,
+                        one_interval.size,
+                        remain_size
+                    );
+                }
+            };
+
             let query_seq = match self.query_strand {
                 Strand::Forward => query.get_sequence(
                     &self.query_chromosome.name,
@@ -176,6 +208,7 @@ impl Chain {
                     self.query_chromosome.length - next_query,
                 )?),
             };
+            trace!("query seq ok");
             let variant = Variant {
                 chromosome: self.reference_chromosome.name.to_string(),
                 position: next_reference,
@@ -197,6 +230,7 @@ impl Chain {
             let mut offset_updated = if offset == 0 {
                 0
             } else {
+                trace!("offset fetch: {}", offset);
                 let offset_reference_seq = reference.get_sequence(
                     &self.reference_chromosome.name,
                     next_reference - offset,

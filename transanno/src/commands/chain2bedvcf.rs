@@ -80,7 +80,7 @@ impl Command for Chain2BedVcf {
                 .help("Do not write nucleotides if a length of reference or alternative sequence is longer than svlen [default: 50]"),
         )
     }
-    fn run(&self, matches: &ArgMatches<'static>) -> Result<(), crate::LiftOverError> {
+    fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()> {
         chain_to_bed_vcf_helper(
             matches.value_of("chain").unwrap(),
             matches.value_of("reference-sequence").unwrap(),
@@ -90,7 +90,8 @@ impl Command for Chain2BedVcf {
             matches.value_of("reference-bed").unwrap(),
             matches.value_of("query-bed").unwrap(),
             matches.value_of("svlen").unwrap().parse().unwrap(),
-        )
+        )?;
+        Ok(())
     }
 }
 

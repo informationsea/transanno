@@ -28,5 +28,5 @@ pub trait Command {
     }
     fn command_name(&self) -> &'static str;
     fn config_subcommand(&self, app: App<'static, 'static>) -> App<'static, 'static>;
-    fn run(&self, matches: &ArgMatches<'static>) -> Result<(), crate::LiftOverError>;
+    fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()>;
 }

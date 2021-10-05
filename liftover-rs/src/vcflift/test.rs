@@ -6,7 +6,7 @@ use std::str;
 
 fn new_vcf_liftover(
     parameter: VCFLiftOverParameters,
-) -> Result<VCFLiftOver<IndexedReader<File>>, LiftOverError> {
+) -> anyhow::Result<VCFLiftOver<IndexedReader<File>>> {
     let chain = ChainFile::load(
         &include_bytes!("../../testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain")[..],
     )?;
@@ -19,7 +19,7 @@ fn new_vcf_liftover(
 }
 
 #[test]
-fn test_header_lift() -> Result<(), LiftOverError> {
+fn test_header_lift() -> anyhow::Result<()> {
     let mut sample_header = &include_bytes!("testfiles/test-header.vcf")[..];
     let reader = VCFReader::new(&mut sample_header)?;
     let vcf_lift = new_vcf_liftover(VCFLiftOverParameters::new())?;
@@ -73,7 +73,7 @@ fn test_header_lift() -> Result<(), LiftOverError> {
 }
 
 #[test]
-fn test_lift_noswap_vcf() -> Result<(), LiftOverError> {
+fn test_lift_noswap_vcf() -> anyhow::Result<()> {
     let mut reader = VCFReader::new(&include_bytes!("testfiles/original.vcf")[..])?;
     let mut expected = VCFReader::new(&include_bytes!("testfiles/mapped-noswap.vcf")[..])?;
     let mut vcf_lift = new_vcf_liftover(VCFLiftOverParameters::new().do_not_swap_ref_alt(true))?;
@@ -103,7 +103,7 @@ fn test_lift_noswap_vcf() -> Result<(), LiftOverError> {
 }
 
 #[test]
-fn test_lift_swap_vcf() -> Result<(), LiftOverError> {
+fn test_lift_swap_vcf() -> anyhow::Result<()> {
     let mut reader = VCFReader::new(&include_bytes!("testfiles/original.vcf")[..])?;
     let mut expected = VCFReader::new(&include_bytes!("testfiles/mapped-swap.vcf")[..])?;
     let mut vcf_lift = new_vcf_liftover(VCFLiftOverParameters::new())?;

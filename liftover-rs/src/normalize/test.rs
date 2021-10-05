@@ -1,11 +1,10 @@
 use super::*;
-use crate::LiftOverError;
 use bio::io::fasta::IndexedReader;
 use serde::Deserialize;
 
 #[allow(clippy::unreadable_literal)]
 #[test]
-fn test_extend_to_left_if_empty_allele_exists() -> Result<(), LiftOverError> {
+fn test_extend_to_left_if_empty_allele_exists() -> anyhow::Result<()> {
     let mut fasta = IndexedReader::from_file(&"testfiles/genomes/GRCh38/GRCh38.chr22.genome.fa")?;
     {
         let chromosome = "chr22";
@@ -135,7 +134,7 @@ struct NormalizeTestSet {
 }
 
 #[test]
-fn test_normalize() -> Result<(), LiftOverError> {
+fn test_normalize() -> anyhow::Result<()> {
     let mut fasta = IndexedReader::from_file(&"testfiles/genomes/GRCh38/GRCh38.chr22.genome.fa")?;
     let testset = include_bytes!("normalize-testset.csv"); // 1-based
     let mut rdr = csv::Reader::from_reader(&testset[..]);

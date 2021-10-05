@@ -120,7 +120,8 @@ impl Command for LiftVcf {
                 .help("Do not prefer same name contig when a variant lifted into multiple positions. (When you use this option, a variant which lifted into a main chromosome and alternative contigs, lift over will be failed if multimap is not allowed)")
         )
     }
-    fn run(&self, matches: &ArgMatches<'static>) -> Result<(), crate::LiftOverError> {
+
+    fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()> {
         info!("start loading chain and fasta");
         let mut reference_seq =
             IndexedReader::from_file(&matches.value_of("reference_sequence").unwrap())?;
@@ -174,6 +175,7 @@ impl Command for LiftVcf {
         .expect("Cannot create output VCF");
         let failed_writer = create(matches.value_of("fail").unwrap(), CompressionLevel::Default)
             .expect("Cannot create output VCF for failed records");
-        vcf_lift.lift_vcf(uncompressed_reader, success_writer, failed_writer)
+        vcf_lift.lift_vcf(uncompressed_reader, success_writer, failed_writer)?;
+        Ok(())
     }
 }

@@ -36,7 +36,7 @@ $ minimap2 -cx asm5 --cs QUERY_FASTA REFERENCE_FASTA > PAF_FILE.paf
                     .help("Output chain file"),
             )
     }
-    fn run(&self, matches: &ArgMatches<'static>) -> Result<(), crate::LiftOverError> {
+    fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()> {
         minimap2_to_chain_helper(
             matches.value_of("paf").unwrap(),
             matches.value_of("chain").unwrap(),
