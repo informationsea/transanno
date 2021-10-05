@@ -1,11 +1,7 @@
 # transanno
 
-[![Build Status](https://travis-ci.org/informationsea/transanno.svg?branch=master)](https://travis-ci.org/informationsea/transanno)
-[![Build status](https://ci.appveyor.com/api/projects/status/2y4krijwr415119i/branch/master?svg=true)](https://ci.appveyor.com/project/informationsea/transanno/branch/master)
-[![Docker Cloud Build Status](https://img.shields.io/docker/cloud/build/informationsea/transanno)](https://hub.docker.com/r/informationsea/transanno)
 [![GitHub](https://img.shields.io/github/license/informationsea/transanno)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/informationsea/transanno)](https://github.com/informationsea/transanno)
-[![Docker Cloud Automated build](https://img.shields.io/docker/cloud/automated/informationsea/transanno)](https://hub.docker.com/r/informationsea/transanno)
 
 accurate VCF/GFF3/GTF LiftOver tool for new genome assemblies
 
