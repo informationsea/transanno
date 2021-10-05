@@ -1,6 +1,6 @@
 [package]
 name = "liftover"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["OKAMURA, Yasunobu <okamura@informationsea.info>"]
 edition = "2018"
 
@@ -10,12 +10,14 @@ edition = "2018"
 bio = "0.30"
 regex = "1"
 lazy_static = "1"
-failure = "0.1"
 indexmap = "1"
 csv = "1"
 log = "0.4"
 nom = "5"
 serde = "1"
+serde_json = "1"
+anyhow = "1"
+thiserror = "1"
 
 [dev-dependencies]
 flate2 = "1"

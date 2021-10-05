@@ -1,7 +1,5 @@
 use super::VCFHeaderRewriteTarget;
-use crate::vcfparse::{
-    CompleteVCFRecord, PartialVCFRecord, VCFParseError, VCFParseErrorKind, VCFRecord,
-};
+use crate::vcfparse::{CompleteVCFRecord, PartialVCFRecord, VCFParseError, VCFRecord};
 use log::warn;
 use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
@@ -77,7 +75,7 @@ pub fn rewrite_allele_frequency<'a>(
                 .filter(|x| x.as_ref() != b".")
                 .try_fold::<_, _, Result<f64, VCFParseError>>(0.0, |s, x| {
                     Ok(s + str::from_utf8(x)?.parse::<f64>().map_err(|_| {
-                        VCFParseErrorKind::FrequencyIsNotNumber {
+                        VCFParseError::FrequencyIsNotNumber {
                             line: original_record.line,
                         }
                     })?)
@@ -209,7 +207,7 @@ pub fn rewrite_gt<'a>(
         for (k, v) in record.format.iter().zip(one_sample.iter_mut()) {
             if k == &&b"GT"[..] {
                 if v.len() != 1 {
-                    return Err(VCFParseErrorKind::InvalidGTRecord.into());
+                    return Err(VCFParseError::InvalidGTRecord);
                 }
                 //println!("Parse GT: {:?}", str::from_utf8(&v[0]).unwrap());
                 let mut parsed_gt: Vec<_> = parse_gt(&v[0])?
@@ -249,7 +247,7 @@ fn parse_gt(input: &[u8]) -> Result<Vec<(Option<usize>, GTSeparator)>, VCFParseE
     ))(input)?;
     if !input.is_empty() {
         println!("Not empty input: {:?}", input);
-        return Err(VCFParseErrorKind::InvalidGTRecord.into());
+        return Err(VCFParseError::InvalidGTRecord);
     }
 
     Ok(values

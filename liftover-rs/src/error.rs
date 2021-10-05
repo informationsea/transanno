@@ -1,118 +1,45 @@
-use failure::*;
-use std::fmt::{self, Display};
+use thiserror::Error;
 
-#[derive(Debug)]
-pub struct LiftOverError {
-    inner: failure::Context<LiftOverErrorKind>,
-}
-
-#[derive(Clone, Eq, PartialEq, Debug, Fail)]
-pub enum LiftOverErrorKind {
-    #[fail(display = "I/O Error")]
-    IoError,
-    #[fail(display = "UTF-8 or IO Error")]
-    Utf8IoError,
-    #[fail(display = "VCF parse error")]
-    VCFParseError,
-    #[fail(display = "Invalid number of header at line {}", _0)]
+#[derive(Debug, Error)]
+pub enum LiftOverError {
+    #[error("I/O Error")]
+    IoError(#[from] std::io::Error),
+    #[error("CSV Error")]
+    CsvError(#[from] csv::Error),
+    #[error("JSON Error")]
+    JsonError(#[from] serde_json::Error),
+    #[error("UTF-8 or IO Error")]
+    Utf8IoError(#[from] std::str::Utf8Error),
+    #[error("VCF parse error")]
+    VCFParseError(#[from] crate::vcfparse::VCFParseError),
+    #[error("Invalid number of header at line {0}")]
     InvalidNumberOfHeader(u32),
-    #[fail(
-        display = "Invalid header at line {}. A header line should starts with \"chain\"",
-        _0
-    )]
+    #[error("Invalid header at line {0}. A header line should starts with \"chain\"")]
     NoChainHeaderFound(u32),
-    #[fail(display = "Invalid strand at line {}", _0)]
+    #[error("Invalid strand at line {0}")]
     InvalidStrand(u32),
-    #[fail(display = "Invalid chromosome length at line {}", _0)]
+    #[error("Invalid chromosome length at line {0}")]
     InvalidChromosomeLength(u32),
-    #[fail(display = "Invalid number of columns at line {}", _0)]
+    #[error("Invalid number of columns at line {0}")]
     InvalidNumberOfColumns(u32),
-    #[fail(display = "Reference sequence is different from expected sequence")]
+    #[error("Reference sequence is different from expected sequence")]
     DifferentReference,
-    #[fail(display = "Parse integer error")]
-    ParseIntError,
-    #[fail(display = "Parse strand error")]
+    #[error("Parse integer error")]
+    ParseIntError(#[from] std::num::ParseIntError),
+    #[error("Parse strand error")]
     ParseStrandError,
-    #[fail(display = "stand for reference should be forward")]
+    #[error("stand for reference should be forward")]
     ReferenceStrandShouldForward,
-    #[fail(
-        display = "length of chromosome {} is not equal to length in chain file. Are you using correct reference?",
-        _0
+    #[error(
+        "length of chromosome {0} is not equal to length in chain file. Are you using correct reference?",
     )]
     ReferenceChromosomeLengthIsNotMatch(String),
-    #[fail(
-        display = "length of chromosome {} is not equal to length in chain file. Are you using correct query?",
-        _0
+    #[error(
+         "length of chromosome {0} is not equal to length in chain file. Are you using correct query?",
     )]
     QueryChromosomeLengthIsNotMatch(String),
-    #[fail(display = "unknown sequence error: {}", _0)]
-    UnknownSequenceError(String),
-    #[fail(display = "Failed to parse gene annotation")]
-    GeneParseError,
-}
-
-impl Fail for LiftOverError {
-    fn cause(&self) -> Option<&dyn Fail> {
-        self.inner.cause()
-    }
-
-    fn backtrace(&self) -> Option<&Backtrace> {
-        self.inner.backtrace()
-    }
-}
-
-impl Display for LiftOverError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        Display::fmt(&self.inner, f)
-    }
-}
-
-impl LiftOverError {
-    pub fn kind(&self) -> LiftOverErrorKind {
-        self.inner.get_context().clone()
-    }
-}
-
-impl From<LiftOverErrorKind> for LiftOverError {
-    fn from(kind: LiftOverErrorKind) -> LiftOverError {
-        LiftOverError {
-            inner: Context::new(kind),
-        }
-    }
-}
-
-impl From<Context<LiftOverErrorKind>> for LiftOverError {
-    fn from(inner: Context<LiftOverErrorKind>) -> LiftOverError {
-        LiftOverError { inner }
-    }
-}
-
-impl From<std::io::Error> for LiftOverError {
-    fn from(e: std::io::Error) -> LiftOverError {
-        e.context(LiftOverErrorKind::IoError).into()
-    }
-}
-
-impl From<csv::Error> for LiftOverError {
-    fn from(e: csv::Error) -> LiftOverError {
-        e.context(LiftOverErrorKind::Utf8IoError).into()
-    }
-}
-
-impl From<std::num::ParseIntError> for LiftOverError {
-    fn from(e: std::num::ParseIntError) -> LiftOverError {
-        e.context(LiftOverErrorKind::ParseIntError).into()
-    }
-}
-
-impl From<crate::vcfparse::VCFParseError> for LiftOverError {
-    fn from(e: crate::vcfparse::VCFParseError) -> LiftOverError {
-        e.context(LiftOverErrorKind::IoError).into()
-    }
-}
-
-impl From<crate::geneparse::GeneParseError> for LiftOverError {
-    fn from(e: crate::geneparse::GeneParseError) -> LiftOverError {
-        e.context(LiftOverErrorKind::GeneParseError).into()
-    }
+    #[error("unknown sequence error: {0}: {1}")]
+    UnknownSequenceError(String, std::io::Error),
+    #[error("Failed to parse gene annotation")]
+    GeneParseError(#[from] crate::geneparse::GeneParseError),
 }

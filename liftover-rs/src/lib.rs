@@ -1,6 +1,5 @@
 #[macro_use]
 extern crate lazy_static;
-extern crate failure;
 
 pub mod chain;
 mod defs;
@@ -14,4 +13,4 @@ pub mod vcflift;
 pub mod vcfparse;
 
 pub use defs::*;
-pub use error::{LiftOverError, LiftOverErrorKind};
+pub use error::LiftOverError;

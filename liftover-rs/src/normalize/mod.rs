@@ -1,4 +1,4 @@
-use crate::{GenomeSequence, LiftOverError, LiftOverErrorKind, Variant};
+use crate::{GenomeSequence, LiftOverError, Variant};
 
 fn extend_to_left_if_empty_allele_exists<G: GenomeSequence>(
     chromosome: &str,
@@ -72,7 +72,7 @@ impl Variant {
             self.position + self.reference.len() as u64,
         )?;
         if reference_seq != self.reference {
-            return Err(LiftOverErrorKind::DifferentReference.into());
+            return Err(LiftOverError::DifferentReference);
         }
         let mut position = self.position;
         let mut alleles = Vec::new();

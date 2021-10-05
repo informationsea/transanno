@@ -7,7 +7,7 @@ use crate::vcfparse::{
     CompleteVCFRecord, PartialVCFRecord, VCFHeader, VCFHeaderItem, VCFParseError, VCFReader,
     VCFRecord, VCFWriter,
 };
-use crate::{chromosome_priority, LiftOverError, LiftOverErrorKind, Variant};
+use crate::{chromosome_priority, LiftOverError, Variant};
 use log::{info, warn};
 use regex::Regex;
 use std::borrow::Cow;
@@ -591,10 +591,9 @@ impl<G: GenomeSequence> VCFLiftOver<G> {
                         .reference_chromosome_by_name(str::from_utf8(id).unwrap())
                     {
                         if length != known_chromosome.length {
-                            return Err(LiftOverErrorKind::ReferenceChromosomeLengthIsNotMatch(
+                            return Err(LiftOverError::ReferenceChromosomeLengthIsNotMatch(
                                 str::from_utf8(id).unwrap().to_string(),
-                            )
-                            .into());
+                            ));
                         }
                     }
                 }

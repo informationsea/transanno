@@ -3,7 +3,7 @@ pub mod gff3;
 pub mod gtf;
 pub mod refgene;
 
-pub use error::{GeneParseError, GeneParseErrorKind};
+pub use error::GeneParseError;
 
 use std::fmt::{self, Display};
 use std::iter::Iterator;

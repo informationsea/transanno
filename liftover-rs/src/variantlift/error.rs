@@ -1,21 +1,21 @@
-use failure::*;
+use thiserror::Error;
 
-#[derive(Clone, Eq, PartialEq, Debug, Fail, PartialOrd, Ord)]
+#[derive(Debug, Error)]
 pub enum VariantLiftOverError {
-    #[fail(display = "Unacceptable large deletion")]
+    #[error("Unacceptable large deletion")]
     UnacceptableLargeDeletion {
         chromosome: String,
         start: u64,
         end: u64,
     },
-    #[fail(display = "Unacceptable large insertion")]
+    #[error("Unacceptable large insertion")]
     UnacceptableLargeInsertion {
         chromosome: String,
         start: u64,
         end: u64,
     },
-    #[fail(display = "Unknown sequence name: {}", _0)]
+    #[error("Unknown sequence name: {}", _0)]
     UnknownSequenceName(String),
-    #[fail(display = "REF is different from expected reference sequence")]
+    #[error("REF is different from expected reference sequence")]
     ReferenceSequenceIsNotMatch,
 }

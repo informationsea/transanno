@@ -5,7 +5,7 @@ mod reader;
 mod writer;
 
 pub use completerecord::CompleteVCFRecord;
-pub use error::{as_header_error, as_record_error, VCFParseError, VCFParseErrorKind};
+pub use error::{as_header_error, as_record_error, VCFParseError};
 pub use partialrecord::PartialVCFRecord;
 pub use reader::VCFReader;
 pub use writer::VCFWriter;

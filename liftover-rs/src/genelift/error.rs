@@ -1,24 +1,24 @@
-use failure::Fail;
+use thiserror::Error;
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Copy, Fail)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Copy, Error)]
 pub enum FeatureLiftError {
-    #[fail(display = "error on sub-features")]
+    #[error("error on sub-features")]
     SubFeatureError,
-    #[fail(display = "no lift over candidates")]
+    #[error("no lift over candidates")]
     NoCandidates,
-    #[fail(display = "too large lifted region: {}", _0)]
+    #[error("too large lifted region: {0}")]
     TooLargeLiftedRegion(u64),
-    #[fail(display = "too small lifted region: {}", _0)]
+    #[error("too small lifted region: {0}")]
     TooSmallLiftedRegion(u64),
-    #[fail(display = "multi-map")]
+    #[error("multi-map")]
     MultiMap,
-    #[fail(display = "multi-map sub feature")]
+    #[error("multi-map sub feature")]
     MultiMapSubFeature,
-    #[fail(display = "no common chromosome")]
+    #[error("no common chromosome")]
     NoCommonChromosome,
-    #[fail(display = "wrong exon order")]
+    #[error("wrong exon order")]
     WrongExonOrder,
-    #[fail(display = "wrong strand")]
+    #[error("wrong strand")]
     WrongStrand,
 }
 

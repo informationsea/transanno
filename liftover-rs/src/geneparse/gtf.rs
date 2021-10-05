@@ -1,8 +1,4 @@
-use super::{
-    Feature, FeatureType, Gene, GeneParseError, GeneParseErrorKind, GeneStrand, GroupedReader,
-    Transcript,
-};
-use failure::Fail;
+use super::{Feature, FeatureType, Gene, GeneParseError, GeneStrand, GroupedReader, Transcript};
 use indexmap::IndexMap;
 use log::{error, trace};
 use nom::branch::alt;
@@ -53,9 +49,10 @@ impl<R: io::BufRead> Iterator for GtfReader<R> {
                     } else {
                         match line.parse::<GtfRecord>() {
                             Ok(feature) => Some(Ok(feature)),
-                            Err(e) => Some(Err(e
-                                .context(GeneParseErrorKind::ParseErrorAtLine(self.line_number))
-                                .into())),
+                            Err(e) => Some(Err(GeneParseError::ParseErrorAtLine(
+                                self.line_number,
+                                Box::new(e),
+                            ))),
                         }
                     }
                 }
@@ -127,7 +124,7 @@ fn group_gtf(
             "Cannot group by gene: multiple genes or no gene in a group: {:?}",
             gene_candidates
         );
-        return Err(GeneParseErrorKind::ParseError.into());
+        return Err(GeneParseError::ParseError.into());
     }
 
     let gene_index = gene_candidates[0].0;
@@ -143,7 +140,7 @@ fn group_gtf(
             "No ID was found for gene candidate record: {:?}",
             gene.original_record
         );
-        return Err(GeneParseErrorKind::ParseError.into());
+        return Err(GeneParseError::ParseError.into());
     }
 
     let transcript_indexes: Vec<usize> = records
@@ -179,7 +176,7 @@ fn group_gtf(
             parent.children.push(one_record);
         } else {
             error!("no parent found: {:?}", parent_id);
-            return Err(GeneParseErrorKind::ParseError.into());
+            return Err(GeneParseError::ParseError.into());
         }
     }
 

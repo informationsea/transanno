@@ -1,8 +1,4 @@
-use super::{
-    Feature, FeatureType, Gene, GeneParseError, GeneParseErrorKind, GeneStrand, GroupedReader,
-    Transcript,
-};
-use failure::Fail;
+use super::{Feature, FeatureType, Gene, GeneParseError, GeneStrand, GroupedReader, Transcript};
 use indexmap::IndexMap;
 use log::{error, trace};
 use nom::bytes::complete::{is_not, tag};
@@ -45,9 +41,10 @@ impl<R: io::BufRead> Iterator for Gff3Reader<R> {
                     } else {
                         match line.parse::<Gff3Record>() {
                             Ok(feature) => Some(Ok(feature)),
-                            Err(e) => Some(Err(e
-                                .context(GeneParseErrorKind::ParseErrorAtLine(self.line_number))
-                                .into())),
+                            Err(e) => Some(Err(GeneParseError::ParseErrorAtLine(
+                                self.line_number,
+                                Box::new(e),
+                            ))),
                         }
                     }
                 }
@@ -124,7 +121,7 @@ fn group_gff3(
             "Cannot group by gene: multiple genes or no gene in a group: {:?}",
             gene_candidates
         );
-        return Err(GeneParseErrorKind::ParseError.into());
+        return Err(GeneParseError::ParseError);
     }
 
     let gene_index = gene_candidates[0].0;
@@ -140,7 +137,7 @@ fn group_gff3(
             "No ID was found for gene candidate record: {:?}",
             gene.original_record
         );
-        return Err(GeneParseErrorKind::ParseError.into());
+        return Err(GeneParseError::ParseError);
     }
 
     let transcript_indexes: Vec<usize> = records

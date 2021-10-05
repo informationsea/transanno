@@ -1,4 +1,4 @@
-use super::{GeneParseError, GeneParseErrorKind, GeneStrand};
+use super::{GeneParseError, GeneStrand};
 use std::fmt::{self, Display};
 use std::io::BufRead;
 use std::str::FromStr;
@@ -57,7 +57,7 @@ impl FromStr for CDSStat {
             "unk" => Ok(CDSStat::Unk),
             "incmpl" => Ok(CDSStat::Incmpl),
             "cmpl" => Ok(CDSStat::Cmpl),
-            _ => Err(GeneParseErrorKind::CDSStatParseError.into()),
+            _ => Err(GeneParseError::CDSStatParseError),
         }
     }
 }
@@ -87,7 +87,7 @@ impl FromStr for RefGeneEntry {
     fn from_str(line: &str) -> Result<Self, Self::Err> {
         let elements: Vec<_> = line.trim_end().split('\t').collect();
         if elements.len() != 16 {
-            return Err(GeneParseErrorKind::RefGeneInvalidColumnNumber.into());
+            return Err(GeneParseError::RefGeneInvalidColumnNumber);
         }
 
         Ok(RefGeneEntry {

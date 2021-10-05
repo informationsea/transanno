@@ -55,7 +55,6 @@ fn test_target_region2() {
     assert_eq!(value.is_indel(), true);
 }
 
-use failure::ResultExt;
 use serde::Deserialize;
 use std::collections::HashSet;
 
@@ -87,8 +86,7 @@ fn test_liftover1() -> Result<(), LiftOverError> {
     )?;
     let expected_loader: JsonWrapper = serde_json::from_reader(
         &include_bytes!("../../testfiles/genomes/chain/GRCh38-to-GRCh37.test-position.json")[..],
-    )
-    .context(crate::LiftOverErrorKind::IoError)?;
+    )?;
 
     for one in expected_loader.list {
         let mapped: HashSet<_> = lift_over
@@ -137,8 +135,7 @@ fn test_lift_region() -> Result<(), LiftOverError> {
     )?;
     let expected_regions: ExpectedLiftRegionResult = serde_json::from_reader(
         &include_bytes!("../../testfiles/genomes/chain/mapped-region/GRCh38-to-GRCh37.test-region.GRCh38.mapped.GRCh37.json")[..],
-    )
-    .context(crate::LiftOverErrorKind::IoError)?;
+    )?;
 
     // these regions contains large deletion.
     // UCSC LiftOver tool cannot map them.

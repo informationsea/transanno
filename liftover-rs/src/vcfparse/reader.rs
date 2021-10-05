@@ -1,6 +1,4 @@
-use super::{
-    as_header_error, PartialVCFRecord, VCFHeader, VCFHeaderItem, VCFParseError, VCFParseErrorKind,
-};
+use super::{as_header_error, PartialVCFRecord, VCFHeader, VCFHeaderItem, VCFParseError};
 use nom::bytes::complete::{tag, take_till};
 use nom::multi::many0;
 use std::io::{self, BufRead};
@@ -38,11 +36,10 @@ impl<R: io::Read> VCFReader<io::BufReader<R>> {
                 }
                 break;
             } else {
-                return Err(VCFParseErrorKind::HeaderParseError {
+                return Err(VCFParseError::HeaderParseError {
                     line: current_line,
                     column: 0,
-                }
-                .into());
+                });
             }
         }
 

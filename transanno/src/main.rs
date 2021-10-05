@@ -1,11 +1,10 @@
 #[macro_use]
 extern crate lazy_static;
-extern crate failure;
 
 mod cli;
 pub mod commands;
 
-pub use liftover::{LiftOverError, LiftOverErrorKind};
+pub use liftover::LiftOverError;
 use std::env;
 
 fn main() {

@@ -1,4 +1,4 @@
-use crate::{reverse_complement, GenomeSequence, LiftOverError, LiftOverErrorKind, Variant};
+use crate::{reverse_complement, GenomeSequence, LiftOverError, Variant};
 use regex::Regex;
 
 use log::{info, trace};
@@ -36,7 +36,7 @@ impl FromStr for Strand {
         match s {
             "+" => Ok(Strand::Forward),
             "-" => Ok(Strand::Reverse),
-            _ => Err(LiftOverErrorKind::ParseStrandError.into()),
+            _ => Err(LiftOverError::ParseStrandError),
         }
     }
 }
@@ -130,7 +130,7 @@ impl Chain {
         query: &mut G,
     ) -> Result<Chain, LiftOverError> {
         if self.reference_strand == Strand::Reverse {
-            return Err(LiftOverErrorKind::ReferenceStrandShouldForward.into());
+            return Err(LiftOverError::ReferenceStrandShouldForward);
         }
 
         let mut new_intervals = Vec::new();
@@ -331,15 +331,15 @@ impl ChainFile {
 
                     let elements: Vec<&str> = SPACE.split(trim_line).collect();
                     if elements.len() != 13 {
-                        return Err(LiftOverErrorKind::InvalidNumberOfHeader(line_num).into());
+                        return Err(LiftOverError::InvalidNumberOfHeader(line_num));
                     }
 
                     if elements[0] != "chain" {
-                        return Err(LiftOverErrorKind::NoChainHeaderFound(line_num).into());
+                        return Err(LiftOverError::NoChainHeaderFound(line_num));
                     }
 
                     if elements[4] != "+" {
-                        return Err(LiftOverErrorKind::InvalidStrand(line_num).into());
+                        return Err(LiftOverError::InvalidStrand(line_num));
                     }
 
                     status = LiftOverReadStatus::InChain;
@@ -395,10 +395,7 @@ impl ChainFile {
                                 if registered_chromosome.length
                                     != current_chain.reference_chromosome.length
                                 {
-                                    return Err(LiftOverErrorKind::InvalidChromosomeLength(
-                                        line_num,
-                                    )
-                                    .into());
+                                    return Err(LiftOverError::InvalidChromosomeLength(line_num));
                                 }
                             } else {
                                 reference_chromosomes
@@ -412,10 +409,7 @@ impl ChainFile {
                                 if registered_chromosome.length
                                     != current_chain.query_chromosome.length
                                 {
-                                    return Err(LiftOverErrorKind::InvalidChromosomeLength(
-                                        line_num,
-                                    )
-                                    .into());
+                                    return Err(LiftOverError::InvalidChromosomeLength(line_num));
                                 }
                             } else {
                                 query_chromosomes.push(current_chain.query_chromosome.clone());
@@ -424,7 +418,7 @@ impl ChainFile {
                             chain_list.push(current_chain);
                         }
                     } else {
-                        return Err(LiftOverErrorKind::InvalidNumberOfColumns(line_num).into());
+                        return Err(LiftOverError::InvalidNumberOfColumns(line_num));
                     }
                 }
             }
