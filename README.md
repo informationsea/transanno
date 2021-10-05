@@ -1,5 +1,6 @@
 # transanno
 
+[![Build](https://github.com/informationsea/transanno/actions/workflows/rust.yml/badge.svg)](https://github.com/informationsea/transanno/actions/workflows/rust.yml)
 [![GitHub](https://img.shields.io/github/license/informationsea/transanno)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/informationsea/transanno)](https://github.com/informationsea/transanno)
 
