@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [ master, workflow-test ]
+    branches: [ master, workflow-test, test-github-actions ]
     tags: [ 'v*' ]
   pull_request:
     branches: [ master ]
@@ -53,16 +53,17 @@ jobs:
       if: ${{ matrix.config.os == 'windows-latest' }}
       run: git config --global core.autocrlf input
     - uses: actions/checkout@v2
-    # - name: Install LLVM
-    #   if: ${{ matrix.config.os == 'windows-latest' }}
-    #   run: choco install llvm
-    # - name: Setup LLVM path
-    #   if: ${{ matrix.config.os == 'windows-latest' }}
-    #   run: |
-    #     echo "LIBCLANG_PATH=C:\Program Files\LLVM\bin" > $env:GITHUB_ENV
     - name: Install musl tools
       if: ${{ matrix.config.target == 'x86_64-unknown-linux-musl' }}
       run: sudo apt-get install musl-tools musl-dev
+    - name: Prepare files for UNIX
+      if: ${{ matrix.config.os != 'windows-latest' }}
+      run: ./prepare-test-files.sh
+    - name: Prepare files for Windows
+      if: ${{ matrix.config.os == 'windows-latest' }}
+      run: "7z e liftover-rs\\testfiles\\genomes\\GRCh37\\GRCh37.chr22.genome.fa.xz -oliftover-rs\\testfiles\\genomes\\GRCh37 &&
+            7z e liftover-rs\\testfiles\\genomes\\GRCh37\\GRCh37.chr22.revcomp.genome.fa.xz -oliftover-rs\\testfiles\\genomes\\GRCh37 &&
+            7z e liftover-rs\\testfiles\\genomes\\GRCh38\\GRCh38.chr22.genome.fa.xz -oliftover-rs\\testfiles\\genomes\\GRCh38"
     - name: Install rust
       uses: actions-rs/toolchain@v1
       with:
