@@ -17,7 +17,7 @@ impl Command for Minimap2Chain {
 
 A paf file should be created with a command shown in below.
 
-$ minimap2 -cx asm5 --cs QUERY_FASTA REFERENCE_FASTA > PAF_FILE.paf
+$ minimap2 -cx asm5 --cs QUERY-ORIGINAL_FASTA REFERENCE-NEW_FASTA > PAF_FILE.paf
 "#,
             )
             .arg(

@@ -29,7 +29,7 @@ impl Command for Chain2BedVcf {
                 .short("b")
                 .takes_value(true)
                 .required(true)
-                .help("Output Reference BED file (Not sorted)")
+                .help("Output reference/new sequence BED file (Not sorted)")
         )
         .arg(
             Arg::with_name("query-bed")
@@ -37,7 +37,7 @@ impl Command for Chain2BedVcf {
                 .short("d")
                 .takes_value(true)
                 .required(true)
-                .help("Output Query BED file (Not sorted)")
+                .help("Output query/original sequence BED file (Not sorted)")
         )
         .arg(
             Arg::with_name("reference-vcf")
@@ -45,7 +45,7 @@ impl Command for Chain2BedVcf {
                 .short("v")
                 .takes_value(true)
                 .required(true)
-                .help("Output Reference VCF file (Not sorted)")
+                .help("Output reference/new sequence VCF file (Not sorted)")
         )
         .arg(
             Arg::with_name("query-vcf")
@@ -53,7 +53,7 @@ impl Command for Chain2BedVcf {
                 .short("c")
                 .takes_value(true)
                 .required(true)
-                .help("Output Query VCF file (Not sorted)")
+                .help("Output query/original sequence VCF file (Not sorted)")
         )
         .arg(
             Arg::with_name("reference-sequence")
@@ -61,7 +61,7 @@ impl Command for Chain2BedVcf {
                 .short("r")
                 .takes_value(true)
                 .required(true)
-                .help("Reference FASTA (.fai file is required)"),
+                .help("Reference/new sequence FASTA (.fai file is required)"),
         )
         .arg(
             Arg::with_name("query-sequence")
@@ -69,7 +69,7 @@ impl Command for Chain2BedVcf {
                 .short("q")
                 .takes_value(true)
                 .required(true)
-                .help("Query FASTA (.fai file is required)"),
+                .help("Query/original sequence FASTA (.fai file is required)"),
         ).arg(
             Arg::with_name("svlen")
                 .long("svlen")

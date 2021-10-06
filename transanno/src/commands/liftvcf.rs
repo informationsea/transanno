@@ -17,18 +17,20 @@ impl Command for LiftVcf {
         .arg(
             Arg::with_name("reference_sequence")
                 .long("reference")
+                .alias("new")
                 .short("r")
                 .takes_value(true)
                 .required(true)
-                .help("Reference FASTA (.fai file is required)"),
+                .help("Reference/New sequence FASTA (.fai file is required)"),
         )
         .arg(
             Arg::with_name("query_sequence")
                 .long("query")
+                .alias("original")
                 .short("q")
                 .takes_value(true)
                 .required(true)
-                .help("Query FASTA (.fai file is required)"),
+                .help("Query/Original sequence FASTA (.fai file is required)"),
         )
         .arg(
             Arg::with_name("chain")
