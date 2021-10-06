@@ -20,10 +20,10 @@ def _main():
         current_start = 0
         while current_start < int(row[1]):
             options.output.write(
-                f"{row[0]}\t{current_start}\t{current_start + options.chunk_size}\tCHUNK-{row[0]}-{current_start}-{current_start + options.chunk_size}\n")
+                f"{row[0]}\t{current_start}\t{current_start + options.chunk_size}\tCHUNK-{row[0]}-{current_start}-{current_start + options.chunk_size}\t0\t+\n")
             current_start += options.step_size
         options.output.write(
-            f"{row[0]}\t{int(row[1]) - options.chunk_size}\t{int(row[1])}\tCHUNK-{row[0]}-{int(row[1]) - options.chunk_size}-{int(row[1])}\n")
+            f"{row[0]}\t{int(row[1]) - options.chunk_size}\t{int(row[1])}\tCHUNK-{row[0]}-{int(row[1]) - options.chunk_size}-{int(row[1])}\t0\t+\n")
 
 
 if __name__ == '__main__':

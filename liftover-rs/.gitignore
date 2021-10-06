@@ -5,3 +5,4 @@ Cargo.lock
 .#*
 \#*#
 /testfiles/ucsc
+/tmp

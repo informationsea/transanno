@@ -42,5 +42,8 @@ test ! -f "${DOWNLOAD_DIR}/hg38.fa.fai" && samtools faidx "${DOWNLOAD_DIR}/hg38.
 test ! -f "${DOWNLOAD_DIR}/hg19-regions.bed" && python3 testfiles/ucsc-scripts/create-test-regions.py testfiles/ucsc/hg19.fa.fai --output testfiles/ucsc/hg19-regions.bed
 test ! -f "${DOWNLOAD_DIR}/hg38-regions.bed" && python3 testfiles/ucsc-scripts/create-test-regions.py testfiles/ucsc/hg38.fa.fai --output testfiles/ucsc/hg38-regions.bed
 
-./testfiles/ucsc/liftOver -minMatch=0.1 -bedPlus=4 -tab "${DOWNLOAD_DIR}/hg19-regions.bed" "${DOWNLOAD_DIR}/hg19ToHg38.over.chain.gz" "${DOWNLOAD_DIR}/hg19-regions-mapped-to-hg38.bed" "${DOWNLOAD_DIR}/hg19-regions-mapped-to-hg38-unmapped.bed"
-./testfiles/ucsc/liftOver -minMatch=0.1 -bedPlus=4 -tab "${DOWNLOAD_DIR}/hg38-regions.bed" "${DOWNLOAD_DIR}/hg38ToHg19.over.chain.gz" "${DOWNLOAD_DIR}/hg38-regions-mapped-to-hg19.bed" "${DOWNLOAD_DIR}/hg38-regions-mapped-to-hg19-unmapped.bed"
+./testfiles/ucsc/liftOver -multiple -minMatch=0.1 -bedPlus=6 -tab "${DOWNLOAD_DIR}/hg19-regions.bed" "${DOWNLOAD_DIR}/hg19ToHg38.over.chain.gz" "${DOWNLOAD_DIR}/hg19-regions-mapped-to-hg38.bed" "${DOWNLOAD_DIR}/hg19-regions-mapped-to-hg38-unmapped.bed"
+./testfiles/ucsc/liftOver -multiple -minMatch=0.1 -bedPlus=6 -tab "${DOWNLOAD_DIR}/hg38-regions.bed" "${DOWNLOAD_DIR}/hg38ToHg19.over.chain.gz" "${DOWNLOAD_DIR}/hg38-regions-mapped-to-hg19.bed" "${DOWNLOAD_DIR}/hg38-regions-mapped-to-hg19-unmapped.bed"
+
+python3 testfiles/ucsc-scripts/create-result-json.py --output testfiles/ucsc/hg38-regions-mapped-to-hg19.json testfiles/ucsc/hg38-regions-mapped-to-hg19.bed testfiles/ucsc/hg38-regions-mapped-to-hg19-unmapped.bed
+python3 testfiles/ucsc-scripts/create-result-json.py --output testfiles/ucsc/hg19-regions-mapped-to-hg38.json testfiles/ucsc/hg19-regions-mapped-to-hg38.bed testfiles/ucsc/hg19-regions-mapped-to-hg38-unmapped.bed
