@@ -1,4 +1,5 @@
 mod chain2bedvcf;
+mod chain2chunkbed;
 mod chain_left_align;
 mod generate_completions;
 mod liftgene;
@@ -16,6 +17,7 @@ pub(crate) const COMMANDS: &[&dyn Command] = &[
     &liftgene::LiftGene,
     &liftvcf::LiftVcf,
     &chain2bedvcf::Chain2BedVcf,
+    &chain2chunkbed::Chain2ChunkBed,
     &chain_left_align::ChainLeftAlign,
     &generate_completions::GenerateCompletions,
 ];

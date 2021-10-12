@@ -45,5 +45,5 @@ test ! -f "${DOWNLOAD_DIR}/hg38-regions.bed" && python3 testfiles/ucsc-scripts/c
 ./testfiles/ucsc/liftOver -multiple -minMatch=0.1 -bedPlus=6 -tab "${DOWNLOAD_DIR}/hg19-regions.bed" "${DOWNLOAD_DIR}/hg19ToHg38.over.chain.gz" "${DOWNLOAD_DIR}/hg19-regions-mapped-to-hg38.bed" "${DOWNLOAD_DIR}/hg19-regions-mapped-to-hg38-unmapped.bed"
 ./testfiles/ucsc/liftOver -multiple -minMatch=0.1 -bedPlus=6 -tab "${DOWNLOAD_DIR}/hg38-regions.bed" "${DOWNLOAD_DIR}/hg38ToHg19.over.chain.gz" "${DOWNLOAD_DIR}/hg38-regions-mapped-to-hg19.bed" "${DOWNLOAD_DIR}/hg38-regions-mapped-to-hg19-unmapped.bed"
 
-python3 testfiles/ucsc-scripts/create-result-json.py --output testfiles/ucsc/hg38-regions-mapped-to-hg19.json testfiles/ucsc/hg38-regions-mapped-to-hg19.bed testfiles/ucsc/hg38-regions-mapped-to-hg19-unmapped.bed
-python3 testfiles/ucsc-scripts/create-result-json.py --output testfiles/ucsc/hg19-regions-mapped-to-hg38.json testfiles/ucsc/hg19-regions-mapped-to-hg38.bed testfiles/ucsc/hg19-regions-mapped-to-hg38-unmapped.bed
+python3 testfiles/ucsc-scripts/create-result-json.py --output >(gzip -c > testfiles/ucsc/hg38-regions-mapped-to-hg19.jsonl.gz) testfiles/ucsc/hg38-regions-mapped-to-hg19.bed testfiles/ucsc/hg38-regions-mapped-to-hg19-unmapped.bed
+python3 testfiles/ucsc-scripts/create-result-json.py --output >(gzip -c > testfiles/ucsc/hg19-regions-mapped-to-hg38.jsonl.gz) testfiles/ucsc/hg19-regions-mapped-to-hg38.bed testfiles/ucsc/hg19-regions-mapped-to-hg38-unmapped.bed

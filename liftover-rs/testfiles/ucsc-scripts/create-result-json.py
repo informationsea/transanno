@@ -32,16 +32,15 @@ def _main():
     result_keys = list(result.keys())
     result_keys.sort()
 
-    output_result = []
     for one in result_keys:
-        output_result.append({
+        one_result = {
             "chrom": one[0],
             "start": one[1],
             "end": one[2],
             "mapped": [{"chrom": x[0], "start": x[1], "end": x[2], "strand": x[3]} for x in result[one]]
-        })
+        }
 
-    json.dump({"list": output_result}, options.output, indent="  ")
+        print(json.dumps(one_result), file=options.output)
 
 
 if __name__ == '__main__':
