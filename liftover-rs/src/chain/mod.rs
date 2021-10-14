@@ -152,7 +152,7 @@ impl Chain {
                 ));
             }
         } else {
-            error!(
+            warn!(
                 "Chromosome {} is not found in reference FASTA",
                 self.reference_chromosome.name
             );
@@ -184,7 +184,7 @@ impl Chain {
                 ));
             }
         } else {
-            error!(
+            warn!(
                 "Chromosome {} is not found in query FASTA",
                 self.query_chromosome.name
             );
