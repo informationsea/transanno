@@ -17,7 +17,7 @@ pub(crate) const COMMANDS: &[&dyn Command] = &[
     &liftgene::LiftGene,
     &liftvcf::LiftVcf,
     &chain2bedvcf::Chain2BedVcf,
-    &chain2chunkbed::Chain2ChunkBed,
+    //&chain2chunkbed::Chain2ChunkBed, // Developing
     &chain_left_align::ChainLeftAlign,
     &generate_completions::GenerateCompletions,
 ];

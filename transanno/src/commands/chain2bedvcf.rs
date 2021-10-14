@@ -148,6 +148,9 @@ fn chain_to_bed_vcf_helper(
         .expect("Cannot create reference BED file");
 
     for one_chain in chain_file.chain_list {
+        // Check chromosome length
+        one_chain.check_sequence_consistency(&mut reference_sequence, &mut query_sequence)?;
+
         // write BED
         let (reference_start, reference_end) = convert_position(
             one_chain.reference_start,

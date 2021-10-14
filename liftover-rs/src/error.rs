@@ -20,6 +20,12 @@ pub enum LiftOverError {
     InvalidStrand(u32),
     #[error("Invalid chromosome length at line {0}")]
     InvalidChromosomeLength(u32),
+    #[error("Unmatched chromosome length: {0} / chain file: {1} / FASTA: {2}")]
+    UnmatchedChromosomeLength(String, u64, u64),
+    #[error("Unmatched chromosome length: {0} / chain file: {1} / Reference FASTA: {2}")]
+    UnmatchedReferenceChromosomeLength(String, u64, u64),
+    #[error("Unmatched chromosome length: {0} / chain file: {1} / Query FASTA: {2}")]
+    UnmatchedQueryChromosomeLength(String, u64, u64),
     #[error("Invalid number of columns at line {0}")]
     InvalidNumberOfColumns(u32),
     #[error("Reference sequence is different from expected sequence")]
@@ -42,4 +48,6 @@ pub enum LiftOverError {
     UnknownSequenceError(String, std::io::Error),
     #[error("Failed to parse gene annotation")]
     GeneParseError(#[from] crate::geneparse::GeneParseError),
+    #[error("Chromosome {0} is not found in FASTA")]
+    ChromosomeNotFound(String),
 }

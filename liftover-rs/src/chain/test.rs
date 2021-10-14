@@ -172,6 +172,22 @@ fn test_normalize_chain_file() -> anyhow::Result<()> {
         ]
     );
 
+    assert_eq!(
+        left_aligned_chain.chain_list[2].chain_interval,
+        vec![
+            ChainInterval {
+                size: 2,
+                difference_reference: Some(0),
+                difference_query: Some(3),
+            },
+            ChainInterval {
+                size: 5,
+                difference_reference: None,
+                difference_query: None,
+            }
+        ]
+    );
+
     Ok(())
 }
 
