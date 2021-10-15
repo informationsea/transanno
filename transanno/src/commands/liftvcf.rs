@@ -16,21 +16,21 @@ impl Command for LiftVcf {
         app.about("LiftOver VCF file")
         .arg(
             Arg::with_name("reference_sequence")
-                .long("reference")
-                .alias("new")
+                .long("original-assembly")
+                .alias("reference")
                 .short("r")
                 .takes_value(true)
                 .required(true)
-                .help("Reference/New sequence FASTA (.fai file is required)"),
+                .help("Original assembly FASTA (.fai file is required)"),
         )
         .arg(
             Arg::with_name("query_sequence")
-                .long("query")
-                .alias("original")
+                .long("new-assembly")
+                .alias("query")
                 .short("q")
                 .takes_value(true)
                 .required(true)
-                .help("Query/Original sequence FASTA (.fai file is required)"),
+                .help("New assembly FASTA (.fai file is required)"),
         )
         .arg(
             Arg::with_name("chain")
