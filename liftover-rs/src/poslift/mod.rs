@@ -90,14 +90,14 @@ pub struct LiftOverResult<'a> {
 #[derive(Debug)]
 pub struct PositionLiftOver {
     reference_interval: HashMap<String, IntervalTree<u64, TargetRegion>>,
-    query_interval: HashMap<String, IntervalTree<u64, TargetRegion>>,
+    //query_interval: HashMap<String, IntervalTree<u64, TargetRegion>>,
     chain_file: ChainFile,
 }
 
 impl PositionLiftOver {
     pub fn new(chain_file: ChainFile) -> PositionLiftOver {
         let mut reference_interval = HashMap::new();
-        let mut query_interval = HashMap::new();
+        //let mut query_interval = HashMap::new();
 
         for (i, one_chain) in chain_file.chain_list.iter().enumerate() {
             trace!(
@@ -110,14 +110,14 @@ impl PositionLiftOver {
             let one_reference_interval = reference_interval
                 .entry(one_chain.reference_chromosome.name.clone())
                 .or_insert_with(IntervalTree::new);
-            let one_query_interval = query_interval
-                .entry(one_chain.query_chromosome.name.clone())
-                .or_insert_with(IntervalTree::new);
+            // let one_query_interval = query_interval
+            //     .entry(one_chain.query_chromosome.name.clone())
+            //     .or_insert_with(IntervalTree::new);
 
             chain_register_interval_tree(
                 one_chain,
                 one_reference_interval,
-                one_query_interval,
+                // one_query_interval,
                 chain_file.reference_chromosome_name_to_index[&one_chain.reference_chromosome.name],
                 chain_file.query_chromosome_name_to_index[&one_chain.query_chromosome.name],
                 i,
@@ -126,7 +126,7 @@ impl PositionLiftOver {
 
         PositionLiftOver {
             reference_interval,
-            query_interval,
+            //query_interval,
             chain_file,
         }
     }
@@ -391,7 +391,7 @@ impl PositionLiftOver {
 fn chain_register_interval_tree(
     chain: &Chain,
     reference_interval: &mut IntervalTree<u64, TargetRegion>,
-    query_interval: &mut IntervalTree<u64, TargetRegion>,
+    //query_interval: &mut IntervalTree<u64, TargetRegion>,
     reference_chromosome_index: usize,
     query_chromosome_index: usize,
     chain_index: usize,
@@ -408,7 +408,7 @@ fn chain_register_interval_tree(
         register_one_interval(
             chain,
             reference_interval,
-            query_interval,
+            //query_interval,
             reference_chromosome_index,
             query_chromosome_index,
             chain_index,
@@ -431,7 +431,7 @@ fn chain_register_interval_tree(
                 register_one_interval(
                     chain,
                     reference_interval,
-                    query_interval,
+                    //query_interval,
                     reference_chromosome_index,
                     query_chromosome_index,
                     chain_index,
@@ -455,7 +455,7 @@ fn chain_register_interval_tree(
 fn register_one_interval(
     chain: &Chain,
     reference_interval: &mut IntervalTree<u64, TargetRegion>,
-    query_interval: &mut IntervalTree<u64, TargetRegion>,
+    //query_interval: &mut IntervalTree<u64, TargetRegion>,
     reference_chromosome_index: usize,
     query_chromosome_index: usize,
     chain_index: usize,
@@ -484,17 +484,17 @@ fn register_one_interval(
             } else {
                 reference_next
             };
-            let register_query_next = if query_current == query_next {
-                query_next + 1
-            } else {
-                query_next
-            };
+            // let register_query_next = if query_current == query_next {
+            //     query_next + 1
+            // } else {
+            //     query_next
+            // };
 
             reference_interval.insert(
                 reference_current..register_reference_next,
                 target_region.clone(),
             );
-            query_interval.insert(query_current..register_query_next, target_region);
+            //query_interval.insert(query_current..register_query_next, target_region);
         }
         Strand::Reverse => {
             let target_region = TargetRegion {
@@ -514,21 +514,21 @@ fn register_one_interval(
             } else {
                 reference_next
             };
-            let register_query_next = if query_current == query_next {
-                query_next + 1
-            } else {
-                query_next
-            };
+            // let register_query_next = if query_current == query_next {
+            //     query_next + 1
+            // } else {
+            //     query_next
+            // };
 
             reference_interval.insert(
                 reference_current..register_reference_next,
                 target_region.clone(),
             );
-            query_interval.insert(
-                (chain.query_chromosome.length - register_query_next)
-                    ..(chain.query_chromosome.length - query_current),
-                target_region,
-            );
+            // query_interval.insert(
+            //     (chain.query_chromosome.length - register_query_next)
+            //         ..(chain.query_chromosome.length - query_current),
+            //     target_region,
+            // );
         }
     }
 }
