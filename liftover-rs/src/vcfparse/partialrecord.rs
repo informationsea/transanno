@@ -155,7 +155,11 @@ impl<'a> PartialVCFRecord<'a> {
     fn complete_parse_helper(
         self,
     ) -> Result<CompleteVCFRecord<'a>, nom::Err<(&'a [u8], nom::error::ErrorKind)>> {
-        let info = separated_nonempty_list(tag(b";"), parse_info_tag)(self.original_unparsed_info)?;
+        let info = if self.original_unparsed_info == b"." || self.original_unparsed_info == b"" {
+            (&b""[..], Vec::new())
+        } else {
+            separated_nonempty_list(tag(b";"), parse_info_tag)(self.original_unparsed_info)?
+        };
 
         let input = self.other;
         let (input, format) = if !input.is_empty() {
