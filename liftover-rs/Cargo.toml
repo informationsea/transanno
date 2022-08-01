@@ -7,7 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bio = "0.38"
+bio = "0.41"
 regex = "1"
 lazy_static = "1"
 indexmap = "1"
