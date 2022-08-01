@@ -235,37 +235,37 @@ impl FromStr for RefGeneEntry {
 #[allow(clippy::unreadable_literal)]
 #[cfg(test)]
 mod test {
+    use once_cell::sync::Lazy;
+
     use super::*;
 
     static CHEK2_LINE: &str = r#"100	NM_145862	chr22	-	28687742	28741834	28687896	28734721	14	28687742,28689134,28694031,28695126,28695709,28699837,28703504,28710005,28711908,28719394,28724976,28725242,28734402,28741768,	28687986,28689215,28694117,28695242,28695873,28699937,28703566,28710059,28712017,28719485,28725124,28725367,28734727,28741834,	0	CHEK2	cmpl	cmpl	0,0,1,2,0,2,0,0,2,1,0,1,0,-1,
 "#;
 
-    lazy_static! {
-        static ref CHEK2: RefGeneEntry = RefGeneEntry {
-            bin: 100,
-            name: "NM_145862".to_string(),
-            chrom: "chr22".to_string(),
-            strand: GeneStrand::Reverse,
-            tx_start: 28687742,
-            tx_end: 28741834,
-            cds_start: 28687896,
-            cds_end: 28734721,
-            exon_count: 14,
-            exon_starts: vec![
-                28687742, 28689134, 28694031, 28695126, 28695709, 28699837, 28703504, 28710005,
-                28711908, 28719394, 28724976, 28725242, 28734402, 28741768
-            ],
-            exon_ends: vec![
-                28687986, 28689215, 28694117, 28695242, 28695873, 28699937, 28703566, 28710059,
-                28712017, 28719485, 28725124, 28725367, 28734727, 28741834
-            ],
-            score: 0,
-            name2: "CHEK2".to_string(),
-            cds_start_stat: CDSStat::Cmpl,
-            cds_end_stat: CDSStat::Cmpl,
-            exon_frames: vec![0, 0, 1, 2, 0, 2, 0, 0, 2, 1, 0, 1, 0, -1],
-        };
-    }
+    static CHEK2: Lazy<RefGeneEntry> = Lazy::new(|| RefGeneEntry {
+        bin: 100,
+        name: "NM_145862".to_string(),
+        chrom: "chr22".to_string(),
+        strand: GeneStrand::Reverse,
+        tx_start: 28687742,
+        tx_end: 28741834,
+        cds_start: 28687896,
+        cds_end: 28734721,
+        exon_count: 14,
+        exon_starts: vec![
+            28687742, 28689134, 28694031, 28695126, 28695709, 28699837, 28703504, 28710005,
+            28711908, 28719394, 28724976, 28725242, 28734402, 28741768,
+        ],
+        exon_ends: vec![
+            28687986, 28689215, 28694117, 28695242, 28695873, 28699937, 28703566, 28710059,
+            28712017, 28719485, 28725124, 28725367, 28734727, 28741834,
+        ],
+        score: 0,
+        name2: "CHEK2".to_string(),
+        cds_start_stat: CDSStat::Cmpl,
+        cds_end_stat: CDSStat::Cmpl,
+        exon_frames: vec![0, 0, 1, 2, 0, 2, 0, 0, 2, 1, 0, 1, 0, -1],
+    });
 
     #[test]
     fn test_refgene_reader() -> Result<(), GeneParseError> {

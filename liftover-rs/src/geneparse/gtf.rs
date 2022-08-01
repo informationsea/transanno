@@ -6,6 +6,7 @@ use nom::bytes::complete::{is_not, tag};
 use nom::character::complete::line_ending;
 use nom::multi::separated_list;
 use nom::sequence::{delimited, separated_pair};
+use once_cell::sync::Lazy;
 use regex::Regex;
 use std::collections::HashMap;
 use std::fmt;
@@ -14,9 +15,7 @@ use std::iter::Iterator;
 use std::str::FromStr;
 use std::string::ToString;
 
-lazy_static! {
-    static ref DIGITS: Regex = Regex::new("^\\d+$").unwrap();
-}
+static DIGITS: Lazy<Regex> = Lazy::new(|| Regex::new("^\\d+$").unwrap());
 
 #[derive(Debug)]
 pub struct GtfReader<R: io::BufRead> {

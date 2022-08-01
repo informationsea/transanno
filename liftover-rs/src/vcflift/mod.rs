@@ -9,35 +9,39 @@ use crate::vcfparse::{
 };
 use crate::{chromosome_priority, LiftOverError, Variant};
 use log::{info, warn};
+use once_cell::sync::Lazy;
 use regex::Regex;
 use std::borrow::Cow;
 use std::collections::{HashMap, HashSet};
 use std::io::{self, prelude::*};
 use std::str;
 
-lazy_static! {
-    pub static ref LIFT_SUCCESS_VCF_HEADER: Vec<VCFHeaderItem> = vec![
+pub static LIFT_SUCCESS_VCF_HEADER: Lazy<Vec<VCFHeaderItem>> = Lazy::new(|| {
+    vec![
         VCFHeaderItem::parse(b"##INFO=<ID=MULTIMAP,Number=1,Type=Integer,Description=\"# of multi-mapped regions\">", 0).unwrap(),
         VCFHeaderItem::parse(b"##INFO=<ID=REF_CHANGED,Number=0,Type=Flag,Description=\"Reference sequence is changed\">", 0).unwrap(),
         VCFHeaderItem::parse(b"##INFO=<ID=ORIGINAL_REF,Number=1,Type=String,Description=\"Original reference sequence\">", 0).unwrap(),
         VCFHeaderItem::parse(b"##INFO=<ID=ORIGINAL_CHROM,Number=1,Type=String,Description=\"Original chromosome\">", 0).unwrap(),
         VCFHeaderItem::parse(b"##INFO=<ID=ORIGINAL_POS,Number=1,Type=Integer,Description=\"Original position\">", 0).unwrap(),
         VCFHeaderItem::parse(b"##INFO=<ID=ORIGINAL_STRAND,Number=1,Type=String,Description=\"Original strand\">", 0).unwrap(),
-    ];
+    ]
+});
 
-    pub static ref LIFT_FAILED_VCF_HEADER: Vec<VCFHeaderItem> = vec![
+pub static LIFT_FAILED_VCF_HEADER: Lazy<Vec<VCFHeaderItem>> = Lazy::new(|| {
+    vec![
         VCFHeaderItem::parse(b"##INFO=<ID=MULTIMAP,Number=1,Type=Integer,Description=\"# of multi-mapped regions\">", 0).unwrap(),
         VCFHeaderItem::parse(b"##INFO=<ID=TESTED_CHROM,Number=1,Type=String,Description=\"Tested chromosome\">", 0).unwrap(),
         VCFHeaderItem::parse(b"##INFO=<ID=TESTED_START,Number=1,Type=String,Description=\"Tested start\">", 0).unwrap(),
         VCFHeaderItem::parse(b"##INFO=<ID=TESTED_END,Number=1,Type=String,Description=\"Tested end\">", 0).unwrap(),
         VCFHeaderItem::parse(b"##INFO=<ID=FAILED_REASON,Number=1,Type=String,Description=\"Reason of liftOver failure\">", 0).unwrap(),
         VCFHeaderItem::parse(b"##INFO=<ID=PARTIAL_SUCCESS,Number=0,Type=Flag,Description=\"Variants in other tried region are succeeded to lift over\">", 0).unwrap(),
-    ];
+    ]
+});
 
-    pub static ref ALLELE_FREQUENCY_MATCH: Regex = Regex::new("^(.+_)?AF(_.+)?$").unwrap();
-    pub static ref ALLELE_NUMBER_MATCH: Regex = Regex::new("^(.+_)?AN(_.+)?$").unwrap();
-    pub static ref ALLELE_COUNT_MATCH: Regex = Regex::new("^(.+_)?AC(_.+)?$").unwrap();
-}
+pub static ALLELE_FREQUENCY_MATCH: Lazy<Regex> =
+    Lazy::new(|| Regex::new("^(.+_)?AF(_.+)?$").unwrap());
+pub static ALLELE_NUMBER_MATCH: Lazy<Regex> = Lazy::new(|| Regex::new("^(.+_)?AN(_.+)?$").unwrap());
+pub static ALLELE_COUNT_MATCH: Lazy<Regex> = Lazy::new(|| Regex::new("^(.+_)?AC(_.+)?$").unwrap());
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct VCFHeaderRewriteTarget {

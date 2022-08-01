@@ -2,16 +2,11 @@ use crate::chain::*;
 use crate::LiftOverError;
 use bio::data_structures::interval_tree::IntervalTree;
 use log::trace;
-use regex::Regex;
 
 use std::collections::HashMap;
 use std::io::Read;
 use std::ops::Range;
 use std::u64;
-
-lazy_static! {
-    static ref SPACE: Regex = Regex::new("\\s").unwrap();
-}
 
 #[derive(Hash, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Copy)]
 pub enum RegionChangeOp {

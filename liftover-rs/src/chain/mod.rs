@@ -1,4 +1,5 @@
 use crate::{reverse_complement, GenomeSequence, LiftOverError, Variant};
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 use log::{info, trace};
@@ -8,9 +9,7 @@ use std::io::{BufRead, BufReader, Read, Write};
 use std::str::FromStr;
 use std::u64;
 
-lazy_static! {
-    static ref SPACE: Regex = Regex::new("\\s").unwrap();
-}
+static SPACE: Lazy<Regex> = Lazy::new(|| Regex::new("\\s").unwrap());
 
 #[derive(Debug, Hash, Default, Clone, PartialEq, Eq)]
 pub struct Chromosome {
