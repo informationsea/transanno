@@ -1,4 +1,5 @@
 use super::Command;
+use anyhow::Context;
 use autocompress::{create, open, CompressionLevel};
 use clap::{App, Arg, ArgMatches};
 use liftover::genelift::GeneLiftOver;
@@ -93,11 +94,18 @@ fn lift_gene_helper(
     format: &str,
     output: &str,
     failed: &str,
-) -> Result<(), LiftOverError> {
-    let chain_file = PositionLiftOver::load(open(chain_path)?)?;
+) -> anyhow::Result<()> {
+    let chain_file = PositionLiftOver::load(open(chain_path).context("Failed to open chain file")?)
+        .context("Failed parse chain file.")?;
     let gene_lift = GeneLiftOver::new(chain_file);
-    let mut writer = io::BufWriter::new(create(output, CompressionLevel::Default)?);
-    let mut failed_writer = io::BufWriter::new(create(failed, CompressionLevel::Default)?);
+    let mut writer = io::BufWriter::new(
+        create(output, CompressionLevel::Default)
+            .with_context(|| format!("Failed to create {}", output))?,
+    );
+    let mut failed_writer = io::BufWriter::new(
+        create(failed, CompressionLevel::Default)
+            .with_context(|| format!("Failed to create {}", failed))?,
+    );
 
     let format = match format {
         "GFF3" | "gff3" => Format::GFF3,
@@ -204,7 +212,7 @@ mod test {
     use std::fs;
 
     #[test]
-    fn test_lift_gff3() -> Result<(), LiftOverError> {
+    fn test_lift_gff3() -> anyhow::Result<()> {
         fs::create_dir_all("../target/test-output/gene")?;
 
         lift_gene_helper(
@@ -219,7 +227,7 @@ mod test {
     }
 
     #[test]
-    fn test_lift_gtf() -> Result<(), LiftOverError> {
+    fn test_lift_gtf() -> anyhow::Result<()> {
         fs::create_dir_all("../target/test-output/gene")?;
 
         lift_gene_helper(
@@ -234,7 +242,7 @@ mod test {
     }
 
     #[test]
-    fn test_lift_gff3_ensemble() -> Result<(), LiftOverError> {
+    fn test_lift_gff3_ensemble() -> anyhow::Result<()> {
         fs::create_dir_all("../target/test-output/gene")?;
 
         lift_gene_helper(
@@ -249,7 +257,7 @@ mod test {
     }
 
     #[test]
-    fn test_lift_gtf_ensemble() -> Result<(), LiftOverError> {
+    fn test_lift_gtf_ensemble() -> anyhow::Result<()> {
         fs::create_dir_all("../target/test-output/gene")?;
 
         lift_gene_helper(

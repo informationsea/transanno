@@ -1,5 +1,6 @@
 use super::Command;
 use crate::cli::validate_integer;
+use anyhow::Context;
 use autocompress::{create, open, CompressionLevel};
 use bio::io::fasta::IndexedReader;
 use clap::{App, Arg, ArgMatches};
@@ -126,11 +127,14 @@ impl Command for LiftVcf {
     fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()> {
         info!("start loading chain and fasta");
         let mut reference_seq =
-            IndexedReader::from_file(&matches.value_of("reference_sequence").unwrap())?;
-        let mut query_seq = IndexedReader::from_file(&matches.value_of("query_sequence").unwrap())?;
+            IndexedReader::from_file(&matches.value_of("reference_sequence").unwrap())
+                .context("Failed to load reference sequence")?;
+        let mut query_seq = IndexedReader::from_file(&matches.value_of("query_sequence").unwrap())
+            .context("Failed to load query sequence")?;
         let chain =
             chain::ChainFile::load(autocompress::open(matches.value_of("chain").unwrap())?)?
-                .left_align(&mut reference_seq, &mut query_seq)?;
+                .left_align(&mut reference_seq, &mut query_seq)
+                .context("Failed to load chain file")?;
         let variant_liftover = variantlift::VariantLiftOver::new(chain, reference_seq, query_seq);
         let mut vcf_lift = vcflift::VCFLiftOver::new(
             variant_liftover,

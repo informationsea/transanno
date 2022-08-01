@@ -1,6 +1,8 @@
 use super::Command;
+use anyhow::Context;
 use autocompress::{create, open, CompressionLevel};
 use clap::{App, Arg, ArgMatches};
+use once_cell::sync::Lazy;
 use regex::Regex;
 use std::io::{self, BufRead, Write};
 
@@ -58,10 +60,10 @@ pub fn minimap2_to_chain(matches: &ArgMatches) {
     }
 }
 
-fn minimap2_to_chain_helper(paf_path: &str, chain_path: &str) -> io::Result<()> {
-    let mut paf_file = io::BufReader::new(open(paf_path).expect("Cannot open paf file"));
+fn minimap2_to_chain_helper(paf_path: &str, chain_path: &str) -> anyhow::Result<()> {
+    let mut paf_file = io::BufReader::new(open(paf_path).context("Cannot open paf file")?);
     let mut chain_file =
-        create(chain_path, CompressionLevel::Default).expect("Cannot create chain file");
+        create(chain_path, CompressionLevel::Default).context("Cannot create chain file")?;
 
     let mut count = 0;
     loop {
@@ -72,10 +74,7 @@ fn minimap2_to_chain_helper(paf_path: &str, chain_path: &str) -> io::Result<()> 
         }
         let elements: Vec<_> = line.trim().split('\t').collect();
         if elements.len() < 9 {
-            return Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!("invalid format: line {}", count),
-            ));
+            return Err(anyhow::anyhow!("invalid format: line {}", count));
         }
 
         match elements[4] {
@@ -112,17 +111,10 @@ fn minimap2_to_chain_helper(paf_path: &str, chain_path: &str) -> io::Result<()> 
                     count
                 )?;
             }
-            _ => {
-                return Err(io::Error::new(
-                    io::ErrorKind::Other,
-                    format!("invalid strand: line {}", count),
-                ))
-            }
+            _ => return Err(anyhow::anyhow!("invalid strand: line {}", count)),
         }
 
-        lazy_static! {
-            static ref CIGER_MATCH: Regex = Regex::new("(\\d+)([IMD])").unwrap();
-        }
+        static CIGER_MATCH: Lazy<Regex> = Lazy::new(|| Regex::new("(\\d+)([IMD])").unwrap());
 
         // parse CIGER
         let mut ciger = &elements
@@ -134,10 +126,7 @@ fn minimap2_to_chain_helper(paf_path: &str, chain_path: &str) -> io::Result<()> 
         while !ciger.is_empty() {
             let regexp_match = CIGER_MATCH.captures(ciger).expect("Cannot parse ciger");
             if regexp_match.get(0).unwrap().start() != 0 {
-                return Err(io::Error::new(
-                    io::ErrorKind::Other,
-                    format!("Cannot parse: line {}", count),
-                ));
+                return Err(anyhow::anyhow!("Cannot parse: line {}", count));
             }
             //println!("{:?}", regexp_match);
             ciger_list.push((
@@ -192,11 +181,10 @@ fn minimap2_to_chain_helper(paf_path: &str, chain_path: &str) -> io::Result<()> 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::LiftOverError;
     use std::fs;
 
     #[test]
-    fn test_minimap2chain() -> Result<(), LiftOverError> {
+    fn test_minimap2chain() -> anyhow::Result<()> {
         fs::create_dir_all("../target/test-output/minimap2chain/")?;
 
         minimap2_to_chain_helper(
