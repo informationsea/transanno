@@ -2,6 +2,9 @@
 
 set -xue
 
+script_dir=$(cd $(dirname ${BASH_SOURCE:-$0}); pwd)
+cd "${script_dir}"
+
 pushd testfiles/genomes
 
 if [ ! -f GRCh37/GRCh37.chr22.genome.fa ]; then

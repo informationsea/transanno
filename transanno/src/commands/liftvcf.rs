@@ -4,7 +4,7 @@ use anyhow::Context;
 use autocompress::{create, open, CompressionLevel};
 use bio::io::fasta::IndexedReader;
 use clap::{App, Arg, ArgMatches};
-use liftover::{chain, variantlift, vcflift};
+use liftover::{chain, variantlift, vcflift, LiftOverError};
 use log::info;
 
 pub struct LiftVcf;
@@ -17,21 +17,21 @@ impl Command for LiftVcf {
         app.about("LiftOver VCF file")
         .arg(
             Arg::with_name("reference_sequence")
-                .long("reference")
-                .alias("new")
+                .long("original-assembly")
+                .alias("reference")
                 .short("r")
                 .takes_value(true)
                 .required(true)
-                .help("Reference/New sequence FASTA (.fai file is required)"),
+                .help("Original assembly FASTA (.fai file is required)"),
         )
         .arg(
             Arg::with_name("query_sequence")
-                .long("query")
-                .alias("original")
+                .long("new-assembly")
+                .alias("query")
                 .short("q")
                 .takes_value(true)
                 .required(true)
-                .help("Query/Original sequence FASTA (.fai file is required)"),
+                .help("New assembly FASTA (.fai file is required)"),
         )
         .arg(
             Arg::with_name("chain")
@@ -135,6 +135,15 @@ impl Command for LiftVcf {
             chain::ChainFile::load(autocompress::open(matches.value_of("chain").unwrap())?)?
                 .left_align(&mut reference_seq, &mut query_seq)
                 .context("Failed to load chain file")?;
+        // Reference/Query sequence and chain consistency
+        for one_chain in chain.chain_list.iter() {
+            match one_chain.check_sequence_consistency(&mut reference_seq, &mut query_seq) {
+                Ok(_) => (),
+                Err(LiftOverError::ChromosomeNotFound(_)) => (),
+                Err(e) => return Err(e.into()),
+            }
+        }
+
         let variant_liftover = variantlift::VariantLiftOver::new(chain, reference_seq, query_seq);
         let mut vcf_lift = vcflift::VCFLiftOver::new(
             variant_liftover,

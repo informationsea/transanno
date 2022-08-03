@@ -31,21 +31,21 @@ impl Command for ChainLeftAlign {
             )
             .arg(
                 Arg::with_name("reference_sequence")
-                    .long("reference")
-                    .alias("new")
+                    .alias("reference")
+                    .long("original")
                     .short("r")
                     .takes_value(true)
                     .required(true)
-                    .help("Reference/New FASTA (.fai file is required)"),
+                    .help("Original assembly FASTA (.fai file is required)"),
             )
             .arg(
                 Arg::with_name("query_sequence")
-                    .long("query")
-                    .alias("original")
+                    .alias("query")
+                    .long("new")
                     .short("q")
                     .takes_value(true)
                     .required(true)
-                    .help("Query/Original FASTA (.fai file is required)"),
+                    .help("New assembly FASTA (.fai file is required)"),
             )
     }
 

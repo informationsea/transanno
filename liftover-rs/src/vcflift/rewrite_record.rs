@@ -73,6 +73,7 @@ pub fn rewrite_allele_frequency<'a>(
             let frequency_sum = v
                 .iter()
                 .filter(|x| x.as_ref() != b".")
+                .filter(|x| x.as_ref() != b"nan")
                 .try_fold::<_, _, Result<f64, VCFParseError>>(0.0, |s, x| {
                     Ok(s + str::from_utf8(x)?.parse::<f64>().map_err(|_| {
                         VCFParseError::FrequencyIsNotNumber {

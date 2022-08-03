@@ -530,3 +530,6 @@ fn register_one_interval(
 
 #[cfg(test)]
 mod test;
+
+#[cfg(all(test, feature = "test_all"))]
+mod test2;
