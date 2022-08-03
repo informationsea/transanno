@@ -1,4 +1,5 @@
 use super::Command;
+use anyhow::Context;
 use autocompress::{create, open, CompressionLevel};
 use bio::io::fasta::IndexedReader;
 use clap::{App, Arg, ArgMatches};
@@ -52,17 +53,17 @@ impl Command for ChainLeftAlign {
     fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()> {
         info!("start loading chain");
         let chain_file = open(matches.value_of("original-chain").unwrap())
-            .expect("Cannot open input chain file");
+            .context("Cannot create input chain file")?;
         let mut output_file = create(
             matches.value_of("output").unwrap(),
             CompressionLevel::Default,
         )
-        .expect("Cannot open output chain file");
+        .context("Cannot create output chain file")?;
         let mut reference_seq =
             IndexedReader::from_file(&matches.value_of("reference_sequence").unwrap())
-                .expect("Cannot load reference sequence");
+                .context("Cannot load original assembly FASTA")?;
         let mut query_seq = IndexedReader::from_file(&matches.value_of("query_sequence").unwrap())
-            .expect("Cannot load query sequence");
+            .context("Cannot load new assembly FASTA")?;
         let chain_data = chain::ChainFile::load(chain_file).expect("Failed to parse chain file");
         let left_aligned = chain_data.left_align(&mut reference_seq, &mut query_seq)?;
         left_aligned.write(&mut output_file)?;

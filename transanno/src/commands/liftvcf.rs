@@ -126,25 +126,25 @@ impl Command for LiftVcf {
 
     fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()> {
         info!("start loading chain and fasta");
-        let mut reference_seq =
+        let mut original_seq =
             IndexedReader::from_file(&matches.value_of("reference_sequence").unwrap())
-                .context("Failed to load reference sequence")?;
-        let mut query_seq = IndexedReader::from_file(&matches.value_of("query_sequence").unwrap())
-            .context("Failed to load query sequence")?;
+                .context("Failed to load original assembly FASTA")?;
+        let mut new_seq = IndexedReader::from_file(&matches.value_of("query_sequence").unwrap())
+            .context("Failed to load new assembly FASTA")?;
         let chain =
             chain::ChainFile::load(autocompress::open(matches.value_of("chain").unwrap())?)?
-                .left_align(&mut reference_seq, &mut query_seq)
+                .left_align(&mut original_seq, &mut new_seq)
                 .context("Failed to load chain file")?;
         // Reference/Query sequence and chain consistency
         for one_chain in chain.chain_list.iter() {
-            match one_chain.check_sequence_consistency(&mut reference_seq, &mut query_seq) {
+            match one_chain.check_sequence_consistency(&mut original_seq, &mut new_seq) {
                 Ok(_) => (),
                 Err(LiftOverError::ChromosomeNotFound(_)) => (),
                 Err(e) => return Err(e.into()),
             }
         }
 
-        let variant_liftover = variantlift::VariantLiftOver::new(chain, reference_seq, query_seq);
+        let variant_liftover = variantlift::VariantLiftOver::new(chain, original_seq, new_seq);
         let mut vcf_lift = vcflift::VCFLiftOver::new(
             variant_liftover,
             vcflift::VCFLiftOverParameters::new()

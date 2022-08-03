@@ -48,17 +48,17 @@ $ minimap2 -cx asm5 --cs NEW_FASTA ORIGINAL_FASTA > PAF_FILE.paf
     }
 }
 
-pub fn minimap2_to_chain(matches: &ArgMatches) {
-    match minimap2_to_chain_helper(
-        matches.value_of("paf").unwrap(),
-        matches.value_of("chain").unwrap(),
-    ) {
-        Ok(_) => (),
-        Err(e) => {
-            eprintln!("Error: {}", e);
-        }
-    }
-}
+// pub fn minimap2_to_chain(matches: &ArgMatches) {
+//     match minimap2_to_chain_helper(
+//         matches.value_of("paf").unwrap(),
+//         matches.value_of("chain").unwrap(),
+//     ) {
+//         Ok(_) => (),
+//         Err(e) => {
+//             eprintln!("Error: {}", e);
+//         }
+//     }
+// }
 
 fn minimap2_to_chain_helper(paf_path: &str, chain_path: &str) -> anyhow::Result<()> {
     let mut paf_file = io::BufReader::new(open(paf_path).context("Cannot open paf file")?);
@@ -124,7 +124,9 @@ fn minimap2_to_chain_helper(paf_path: &str, chain_path: &str) -> anyhow::Result<
         let mut ciger_list = Vec::new();
 
         while !ciger.is_empty() {
-            let regexp_match = CIGER_MATCH.captures(ciger).expect("Cannot parse ciger");
+            let regexp_match = CIGER_MATCH
+                .captures(ciger)
+                .context(format!("Cannot parse ciger: line {}", count))?;
             if regexp_match.get(0).unwrap().start() != 0 {
                 return Err(anyhow::anyhow!("Cannot parse: line {}", count));
             }

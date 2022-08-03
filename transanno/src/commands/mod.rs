@@ -8,7 +8,7 @@ mod minimap2chain;
 
 pub use chain2bedvcf::chain_to_bed_vcf;
 pub use liftgene::lift_gene;
-pub use minimap2chain::minimap2_to_chain;
+// pub use minimap2chain::minimap2_to_chain;
 
 use clap::{crate_authors, crate_version, App, ArgMatches, SubCommand};
 
