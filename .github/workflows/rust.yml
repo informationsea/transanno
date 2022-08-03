@@ -2,10 +2,10 @@ name: Build
 
 on:
   push:
-    branches: [ master, workflow-test, test-github-actions ]
-    tags: [ 'v*' ]
+    branches: [master, workflow-test, test-github-actions]
+    tags: ["v*"]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 env:
   CARGO_TERM_COLOR: always
@@ -15,17 +15,17 @@ jobs:
   tag:
     runs-on: ubuntu-latest
     steps:
-    - name: Short tag
-      id: short_tag
-      if: ${{ startsWith(github.ref, 'refs/tags/v')  }}
-      run: echo "::set-output name=tag::$(basename ${{ github.ref }})"
-    - name: Hash
-      id: hash
-      if: ${{ startsWith(github.ref, 'refs/heads/')  }}
-      run: echo "::set-output name=tag::${{ github.sha }}"
+      - name: Short tag
+        id: short_tag
+        if: ${{ startsWith(github.ref, 'refs/tags/v')  }}
+        run: echo "::set-output name=tag::$(basename ${{ github.ref }})"
+      - name: Hash
+        id: hash
+        if: ${{ startsWith(github.ref, 'refs/heads/')  }}
+        run: echo "::set-output name=tag::${{ github.sha }}"
     outputs:
       tag: ${{ steps.short_tag.outputs.tag }}${{ steps.hash.outputs.tag }}
-  
+
   build:
     runs-on: ${{ matrix.config.os }}
     needs: tag
@@ -40,6 +40,10 @@ jobs:
             target: x86_64-apple-darwin
             test: true
             cross: false
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            test: false
+            cross: false
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             test: true
@@ -48,81 +52,86 @@ jobs:
             target: x86_64-unknown-linux-musl
             test: true
             cross: false
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            test: false
+            cross: true
     steps:
-    - name: Git config
-      if: ${{ matrix.config.os == 'windows-latest' }}
-      run: git config --global core.autocrlf input
-    - uses: actions/checkout@v2
-    - name: Install musl tools
-      if: ${{ matrix.config.target == 'x86_64-unknown-linux-musl' }}
-      run: sudo apt-get install musl-tools musl-dev
-    - name: Prepare files for UNIX
-      if: ${{ matrix.config.os != 'windows-latest' }}
-      run: ./prepare-test-files.sh
-    - name: Prepare files for Windows
-      if: ${{ matrix.config.os == 'windows-latest' }}
-      run: "7z e liftover-rs\\testfiles\\genomes\\GRCh37\\GRCh37.chr22.genome.fa.xz -oliftover-rs\\testfiles\\genomes\\GRCh37 &&
-            7z e liftover-rs\\testfiles\\genomes\\GRCh37\\GRCh37.chr22.revcomp.genome.fa.xz -oliftover-rs\\testfiles\\genomes\\GRCh37 &&
-            7z e liftover-rs\\testfiles\\genomes\\GRCh38\\GRCh38.chr22.genome.fa.xz -oliftover-rs\\testfiles\\genomes\\GRCh38"
-    - name: Install rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        target: ${{ matrix.config.target }}
-        override: true
-        components: rustfmt, clippy
-    - name: Cache dependencies
-      uses: actions/cache@v2
-      env:
-        cache-name: cache-cargo
-      with:
-        path: ~/.cargo/registry
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.crate') }}
-        restore-keys: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-
-    - name: Cache target
-      uses: actions/cache@v2
-      env:
-        cache-name: cache-target
-      with:
-        path: target
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.config.target }}-${{ hashFiles('**/*.o') }}
-        restore-keys: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.config.target }}
-    - name: Build
-      uses: actions-rs/cargo@v1
-      with:
-        use-cross: ${{ matrix.config.cross }}
-        command: build
-        args: --release --target ${{ matrix.config.target }}
-    - name: Test
-      if: ${{ matrix.config.test }}
-      uses: actions-rs/cargo@v1
-      with:
-        command: test
-        args: --release --target ${{ matrix.config.target }}
-    - name: Create release zip for UNIX
-      if: ${{ matrix.config.os != 'windows-latest' }}
-      run: |
+      - name: Git config
+        if: ${{ matrix.config.os == 'windows-latest' }}
+        run: git config --global core.autocrlf input
+      - uses: actions/checkout@v2
+      - name: Install musl tools
+        if: ${{ matrix.config.target == 'x86_64-unknown-linux-musl' }}
+        run: sudo apt-get install musl-tools musl-dev
+      - name: Prepare files for UNIX
+        if: ${{ matrix.config.os != 'windows-latest' }}
+        run: ./prepare-test-files.sh
+      - name: Prepare files for Windows
+        if: ${{ matrix.config.os == 'windows-latest' }}
+        run:
+          "7z e liftover-rs\\testfiles\\genomes\\GRCh37\\GRCh37.chr22.genome.fa.xz -oliftover-rs\\testfiles\\genomes\\GRCh37 &&
+          7z e liftover-rs\\testfiles\\genomes\\GRCh37\\GRCh37.chr22.revcomp.genome.fa.xz -oliftover-rs\\testfiles\\genomes\\GRCh37 &&
+          7z e liftover-rs\\testfiles\\genomes\\GRCh38\\GRCh38.chr22.genome.fa.xz -oliftover-rs\\testfiles\\genomes\\GRCh38"
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.config.target }}
+          override: true
+          components: rustfmt, clippy
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-cargo
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.crate') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+      - name: Cache target
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-target
+        with:
+          path: target
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.config.target }}-${{ hashFiles('**/*.o') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.config.target }}
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          use-cross: ${{ matrix.config.cross }}
+          command: build
+          args: --release --target ${{ matrix.config.target }}
+      - name: Test
+        if: ${{ matrix.config.test }}
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --release --target ${{ matrix.config.target }}
+      - name: Create release zip for UNIX
+        if: ${{ matrix.config.os != 'windows-latest' }}
+        run: |
           mkdir -p ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}
           cp target/${{ matrix.config.target }}/release/${{ env.APP_NAME }} ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
           cp README.md ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
           cp LICENSE ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
           zip -r ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}.zip ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
-    - name: Create release zip for Windows
-      if: ${{ matrix.config.os == 'windows-latest' }}
-      run: |
+      - name: Create release zip for Windows
+        if: ${{ matrix.config.os == 'windows-latest' }}
+        run: |
           mkdir ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}
           cp target/${{ matrix.config.target }}/release/${{ env.APP_NAME }}.exe ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
           cp README.md ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
           cp LICENSE ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
           Compress-Archive -DestinationPath ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}.zip -Path ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag}}.zip
-        path: |
-              ./${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}.zip
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag}}.zip
+          path: |
+            ./${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}.zip
 
   release:
     needs: [build, tag]
@@ -147,23 +156,25 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ startsWith(github.ref, 'refs/tags/v')  }}
     strategy:
-      matrix:  
+      matrix:
         target:
-        - x86_64-pc-windows-msvc
-        - x86_64-apple-darwin
-        - x86_64-unknown-linux-musl
+          - x86_64-pc-windows-msvc
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-musl
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v2
         with:
           name: ${{ env.APP_NAME }}-${{ matrix.target }}-${{ needs.tag.outputs.tag }}.zip
       - name: Upload Release Asset
-        id: upload-release-asset 
+        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ needs.release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          upload_url: ${{ needs.release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
           asset_path: ./${{ env.APP_NAME }}-${{ matrix.target }}-${{ needs.tag.outputs.tag }}.zip
           asset_name: ${{ env.APP_NAME }}-${{ matrix.target }}-${{ needs.tag.outputs.tag }}.zip
           asset_content_type: application/zip
