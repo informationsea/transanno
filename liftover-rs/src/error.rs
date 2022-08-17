@@ -50,4 +50,6 @@ pub enum LiftOverError {
     GeneParseError(#[from] crate::geneparse::GeneParseError),
     #[error("Chromosome {0} is not found in FASTA")]
     ChromosomeNotFound(String),
+    #[error("No chain found")]
+    NoChainFoundError,
 }

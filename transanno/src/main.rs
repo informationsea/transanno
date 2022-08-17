@@ -2,6 +2,7 @@ mod cli;
 pub mod commands;
 
 pub use liftover::LiftOverError;
+use log::error;
 use std::env;
 
 fn main() {
@@ -23,7 +24,10 @@ fn main() {
 
     for one_command in commands::COMMANDS {
         if let Some(matches) = matches.subcommand_matches(one_command.command_name()) {
-            one_command.run(matches).expect("Operation Error");
+            if let Err(e) = one_command.run(matches) {
+                error!("Error: {}", e);
+                std::process::exit(1);
+            }
             return;
         }
     }

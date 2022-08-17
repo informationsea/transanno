@@ -3,7 +3,7 @@ use once_cell::sync::Lazy;
 use regex::Regex;
 
 use log::{error, info, trace, warn};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{self, Display};
 use std::io::{BufRead, BufReader, Read, Write};
 use std::str::FromStr;
@@ -387,6 +387,8 @@ impl ChainFile {
     ) -> Result<ChainFile, LiftOverError> {
         info!("start  chain file left align");
         let mut new_chain_list = Vec::new();
+        let mut warned_ref_chrom = HashSet::new();
+        let mut warned_new_chrom = HashSet::new();
         for one_chain in self.chain_list.iter() {
             if reference
                 .get_contig_list()
@@ -395,10 +397,13 @@ impl ChainFile {
                 .next()
                 .is_none()
             {
-                warn!(
-                    "Chromosome {} is not found in reference FASTA. Skipping...",
-                    one_chain.reference_chromosome.name
-                );
+                if !warned_ref_chrom.contains(&one_chain.reference_chromosome.name) {
+                    warn!(
+                        "Chromosome {} is not found in original FASTA. Skipping...",
+                        one_chain.reference_chromosome.name
+                    );
+                    warned_ref_chrom.insert(one_chain.reference_chromosome.name.clone());
+                }
                 continue;
             }
             if query
@@ -408,13 +413,20 @@ impl ChainFile {
                 .next()
                 .is_none()
             {
-                warn!(
-                    "Chromosome {} is not found in query FASTA. Skipping...",
-                    one_chain.query_chromosome.name
-                );
+                if !warned_new_chrom.contains(&one_chain.query_chromosome.name) {
+                    warn!(
+                        "Chromosome {} is not found in new FASTA. Skipping...",
+                        one_chain.query_chromosome.name
+                    );
+                    warned_new_chrom.insert(one_chain.query_chromosome.name.clone());
+                }
                 continue;
             }
             new_chain_list.push(one_chain.left_align(reference, query)?);
+        }
+        if new_chain_list.is_empty() {
+            error!("No chain found. You may use wrong FASTA.");
+            return Err(LiftOverError::NoChainFoundError);
         }
         info!("finish chain file left align");
 
