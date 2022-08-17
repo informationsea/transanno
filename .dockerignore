@@ -1,1 +1,4 @@
 target/
+/tmp/
+/liftover-rs/tmp/
+/liftover-rs/testfiles/ucsc/
