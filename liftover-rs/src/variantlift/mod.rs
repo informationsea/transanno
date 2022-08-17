@@ -118,7 +118,7 @@ impl<G: GenomeSequence> VariantLiftOver<G> {
                     .search_target(&variant.chromosome, start..end)
             } else {
                 self.lift_position
-                    .search_target(&variant.chromosome, (start - 1)..(end + 1))
+                    .search_target(&variant.chromosome, (start.max(1) - 1)..(end + 1))
             };
 
         let mut result = Vec::new();
