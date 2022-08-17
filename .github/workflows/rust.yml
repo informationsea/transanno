@@ -44,10 +44,10 @@ jobs:
             target: aarch64-apple-darwin
             test: false
             cross: false
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            test: true
-            cross: false
+          # - os: ubuntu-latest
+          #   target: x86_64-unknown-linux-gnu
+          #   test: true
+          #   cross: false
           - os: ubuntu-latest
             target: x86_64-unknown-linux-musl
             test: true
