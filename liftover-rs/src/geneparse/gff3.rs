@@ -300,9 +300,9 @@ impl FromStr for Gff3Record {
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         let (input, seq_id) = is_not(" \t\r\n")(input)?;
         let (input, _) = tag("\t")(input)?;
-        let (input, source) = is_not(" \t\r\n")(input)?;
+        let (input, source) = is_not("\t\r\n")(input)?;
         let (input, _) = tag("\t")(input)?;
-        let (input, record_type) = is_not(" \t\r\n")(input)?;
+        let (input, record_type) = is_not("\t\r\n")(input)?;
         let (input, _) = tag("\t")(input)?;
         let (input, start) = is_not(" \t\r\n")(input)?;
         let (input, _) = tag("\t")(input)?;
