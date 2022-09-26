@@ -52,8 +52,8 @@ impl Command for Chain2BedVcf {
         )
         .arg(
             Arg::with_name("query-vcf")
-                .alias("output-new-vcf")
-                .long("output-query-vcf")
+                .long("output-new-vcf")
+                .alias("output-query-vcf")
                 .short("c")
                 .takes_value(true)
                 .required(true)
