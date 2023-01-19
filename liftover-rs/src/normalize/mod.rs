@@ -1,4 +1,5 @@
 use crate::{GenomeSequence, LiftOverError, Variant};
+use log::trace;
 
 fn extend_to_left_if_empty_allele_exists<G: GenomeSequence>(
     chromosome: &str,
@@ -66,6 +67,13 @@ impl Variant {
         if self.alternative.iter().all(|x| x.len() == 1) && self.reference.len() == 1 {
             return Ok(self.clone());
         }
+        trace!(
+            "start normalize: {} {} {} {:?}",
+            self.chromosome,
+            self.position,
+            String::from_utf8_lossy(&self.reference),
+            self.alternative
+        );
         let reference_seq = genome.get_sequence(
             &self.chromosome,
             self.position,
@@ -89,7 +97,7 @@ impl Variant {
         )?;
         // doi: 10.1093/bioinformatics/btv112
         loop {
-            //println!("looping 1 {:?} {:?}", position, alleles);
+            trace!("normalize looping {:?} {:?}", position, alleles);
             let truncated =
                 truncate_right_most_nucleotide_if_allele_ends_with_same(position, &mut alleles);
             let extended = extend_to_left_if_empty_allele_exists(
@@ -113,6 +121,14 @@ impl Variant {
             }
             position += common_prefix_length as u64;
         }
+
+        trace!(
+            "end normalize: {} {} {} {:?}",
+            self.chromosome,
+            self.position,
+            String::from_utf8_lossy(&self.reference),
+            self.alternative
+        );
 
         Ok(Variant {
             chromosome: self.chromosome.clone(),

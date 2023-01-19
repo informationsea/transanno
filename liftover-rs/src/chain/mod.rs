@@ -212,10 +212,11 @@ impl Chain {
 
         for (i, one_interval) in self.chain_interval.iter().enumerate() {
             trace!(
-                "working {}/{} - {:?}",
+                "working {}/{} - {:?} (chain-id:{})",
                 i,
                 self.chain_interval.len(),
-                one_interval
+                one_interval,
+                self.chain_id
             );
             if one_interval.difference_query.unwrap_or(0) == 1
                 && one_interval.difference_reference.unwrap_or(0) == 1
@@ -280,6 +281,9 @@ impl Chain {
                 )?),
             };
             trace!("query seq ok");
+
+            let do_not_normalize = query_seq.contains(&b'N') || reference_seq.contains(&b'N');
+
             let variant = Variant {
                 chromosome: self.reference_chromosome.name.to_string(),
                 position: next_reference,
@@ -287,9 +291,14 @@ impl Chain {
                 alternative: vec![query_seq],
             };
             //println!("before normalization variant: {:?}", variant);
-            let normalized = variant
-                .normalize(reference)?
-                .truncate_left_most_nucleotide_if_allele_starts_with_same();
+
+            let normalized = if do_not_normalize {
+                variant
+            } else {
+                variant
+                    .normalize(reference)?
+                    .truncate_left_most_nucleotide_if_allele_starts_with_same()
+            };
             //println!(" after normalization variant: {:?}", normalized);
 
             let offset = if next_reference > normalized.position {
@@ -301,7 +310,7 @@ impl Chain {
             let mut offset_updated = if offset == 0 {
                 0
             } else {
-                trace!("offset fetch: {}", offset);
+                trace!("offset fetch: {}/{}/{}", next_reference, next_query, offset);
                 let offset_reference_seq = reference.get_sequence(
                     &self.reference_chromosome.name,
                     next_reference - offset,
