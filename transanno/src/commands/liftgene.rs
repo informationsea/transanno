@@ -1,7 +1,6 @@
-use super::Command;
 use anyhow::Context;
 use autocompress::{create, open, CompressionLevel};
-use clap::{App, Arg, ArgMatches};
+use clap::Args;
 use liftover::genelift::GeneLiftOver;
 use liftover::geneparse::gff3::{Gff3GroupedReader, Gff3Reader};
 use liftover::geneparse::gtf::{GtfGroupedReader, GtfReader};
@@ -11,77 +10,107 @@ use liftover::LiftOverError;
 use std::fmt::Display;
 use std::io;
 
-pub struct LiftGene;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, clap::ValueEnum)]
+enum ArgFormat {
+    Auto,
+    GFF3,
+    GTF,
+}
 
-impl Command for LiftGene {
-    fn command_name(&self) -> &'static str {
-        "liftgene"
-    }
-    fn config_subcommand(&self, app: App<'static, 'static>) -> App<'static, 'static> {
-        app.about("Lift GENCODE or Ensemble GFF3/GTF file")
-            .arg(
-                Arg::with_name("chain")
-                    .long("chain")
-                    .short("c")
-                    .required(true)
-                    .takes_value(true)
-                    .help("chain file"),
-            )
-            .arg(
-                Arg::with_name("gff")
-                    .index(1)
-                    .required(true)
-                    .takes_value(true)
-                    .help("input GFF3/GTF file (GENCODE/Ensemble)"),
-            )
-            .arg(
-                Arg::with_name("format")
-                    .long("format")
-                    .possible_values(&["auto", "GFF3", "GTF"])
-                    .takes_value(true)
-                    .default_value("auto")
-                    .help("Input file format"),
-            )
-            .arg(
-                Arg::with_name("output")
-                    .long("output")
-                    .short("o")
-                    .required(true)
-                    .takes_value(true)
-                    .help("GFF3/GTF output path (unsorted)"),
-            )
-            .arg(
-                Arg::with_name("failed")
-                    .long("failed")
-                    .short("f")
-                    .required(true)
-                    .takes_value(true)
-                    .help("Failed to liftOver GFF3/GTF output path"),
-            )
-    }
-    fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()> {
+#[derive(Debug, Clone, Args)]
+#[command(about = "Lift GENCODE or Ensemble GFF3/GTF file")]
+pub struct LiftGene {
+    #[arg(long = "chain", short = 'c', help = "chain file")]
+    chain: String,
+    #[arg(help = "input GFF3/GTF file (GENCODE/Ensemble)")]
+    gff: String,
+    #[arg(
+        long = "format",
+        short = 'f',
+        default_value = "auto",
+        help = "Input file format"
+    )]
+    format: ArgFormat,
+    #[arg(long = "output", short = 'o', help = "GFF3/GTF output path (unsorted)")]
+    output: String,
+    #[arg(
+        long = "failed",
+        short = 'f',
+        help = "Failed to liftOver GFF3/GTF output path"
+    )]
+    failed: String,
+}
+
+impl LiftGene {
+    // fn command_name(&self) -> &'static str {
+    //     "liftgene"
+    // }
+    // fn config_subcommand(&self, app: App<'static, 'static>) -> App<'static, 'static> {
+    //     app.about("Lift GENCODE or Ensemble GFF3/GTF file")
+    //         .arg(
+    //             Arg::with_name("chain")
+    //                 .long("chain")
+    //                 .short("c")
+    //                 .required(true)
+    //                 .takes_value(true)
+    //                 .help("chain file"),
+    //         )
+    //         .arg(
+    //             Arg::with_name("gff")
+    //                 .index(1)
+    //                 .required(true)
+    //                 .takes_value(true)
+    //                 .help("input GFF3/GTF file (GENCODE/Ensemble)"),
+    //         )
+    //         .arg(
+    //             Arg::with_name("format")
+    //                 .long("format")
+    //                 .possible_values(&["auto", "GFF3", "GTF"])
+    //                 .takes_value(true)
+    //                 .default_value("auto")
+    //                 .help("Input file format"),
+    //         )
+    //         .arg(
+    //             Arg::with_name("output")
+    //                 .long("output")
+    //                 .short("o")
+    //                 .required(true)
+    //                 .takes_value(true)
+    //                 .help("GFF3/GTF output path (unsorted)"),
+    //         )
+    //         .arg(
+    //             Arg::with_name("failed")
+    //                 .long("failed")
+    //                 .short("f")
+    //                 .required(true)
+    //                 .takes_value(true)
+    //                 .help("Failed to liftOver GFF3/GTF output path"),
+    //         )
+    // }
+    pub fn run(&self) -> anyhow::Result<()> {
         lift_gene_helper(
-            matches.value_of("chain").unwrap(),
-            matches.value_of("gff").unwrap(),
-            matches.value_of("format").unwrap(),
-            matches.value_of("output").unwrap(),
-            matches.value_of("failed").unwrap(),
+            &self.chain,
+            &self.gff,
+            self.format,
+            &self.output,
+            &self.failed,
         )?;
         Ok(())
     }
 }
 
-pub fn lift_gene(matches: &ArgMatches) {
-    lift_gene_helper(
-        matches.value_of("chain").unwrap(),
-        matches.value_of("gff").unwrap(),
-        matches.value_of("format").unwrap(),
-        matches.value_of("output").unwrap(),
-        matches.value_of("failed").unwrap(),
-    )
-    .expect("Failed to lift gene");
-}
+// pub fn lift_gene(matches: &ArgMatches) {
+//     lift_gene_helper(
+//         matches.value_of("chain").unwrap(),
+//         matches.value_of("gff").unwrap(),
+//         matches.value_of("format").unwrap(),
+//         matches.value_of("output").unwrap(),
+//         matches.value_of("failed").unwrap(),
+//     )
+//     .expect("Failed to lift gene");
+// }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum Format {
     GTF,
     GFF3,
@@ -91,7 +120,7 @@ enum Format {
 fn lift_gene_helper(
     chain_path: &str,
     gff: &str,
-    format: &str,
+    format: ArgFormat,
     output: &str,
     failed: &str,
 ) -> anyhow::Result<()> {
@@ -108,8 +137,8 @@ fn lift_gene_helper(
     );
 
     let format = match format {
-        "GFF3" | "gff3" => Format::GFF3,
-        "GTF" | "gtf" => Format::GTF,
+        ArgFormat::GFF3 => Format::GFF3,
+        ArgFormat::GTF => Format::GTF,
         _ => {
             if gff.ends_with(".gtf") || gff.ends_with(".gtf.gz") {
                 Format::GTF
@@ -218,7 +247,7 @@ mod test {
         lift_gene_helper(
             "../liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
             "../liftover-rs/testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gff3.xz",
-            "auto",
+            ArgFormat::Auto,
             "../target/test-output/gene/gff-lift-gencode.v33.basic.annotation.chr22.mapped.gff3.gz",
             "../target/test-output/gene/gff-lift-gencode.v33.basic.annotation.chr22.failed.gff3.gz",
         )?;
@@ -233,7 +262,7 @@ mod test {
         lift_gene_helper(
             "../liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
             "../liftover-rs/testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gtf.xz",
-            "gtf",
+            ArgFormat::GTF,
             "../target/test-output/gene/gff-lift-gencode.v33.annotation.chr22.mapped.gtf.gz",
             "../target/test-output/gene/gff-lift-gencode.v33.annotation.chr22.failed.gtf.gz",
         )?;
@@ -248,7 +277,7 @@ mod test {
         lift_gene_helper(
             "../liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
             "../liftover-rs/testfiles/GENCODE/Homo_sapiens.GRCh38.99.ensembl.chr22.gff3.xz",
-            "auto",
+            ArgFormat::Auto,
             "../target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.mapped.gff3.gz",
             "../target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.failed.gff3.gz",
         )?;
@@ -263,7 +292,7 @@ mod test {
         lift_gene_helper(
             "../liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
             "../liftover-rs/testfiles/GENCODE/Homo_sapiens.GRCh38.99.ensembl.chr22.gff3.xz",
-            "auto",
+            ArgFormat::Auto,
             "../target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.mapped.gtf.gz",
             "../target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.failed.gtf.gz",
         )?;

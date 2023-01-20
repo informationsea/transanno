@@ -1,120 +1,172 @@
-use super::Command;
-use crate::cli::validate_integer;
 use autocompress::{create, open, CompressionLevel};
 use bio::io::fasta::IndexedReader;
-use clap::{App, Arg, ArgMatches};
+use clap::Args;
 use liftover::chain::{Chain, Strand};
 use liftover::LiftOverError;
 use liftover::{reverse_acid, reverse_complement, GenomeSequence};
 use log::warn;
 use std::io::{self, Write};
 
-pub struct Chain2BedVcf;
+#[derive(Debug, Clone, Args)]
+#[command(about = "Create BED and VCF file from chain file")]
+pub struct Chain2BedVcf {
+    #[arg(help = "Input Chain file")]
+    chain: String,
+    #[arg(
+        long = "output-original-bed",
+        alias = "output-reference-bed",
+        short = 'b',
+        help = "Output original assembly BED file (Not sorted)"
+    )]
+    reference_bed: String,
+    #[arg(
+        long = "output-new-bed",
+        alias = "output-query-bed",
+        short = 'd',
+        help = "Output new assembly BED file (Not sorted)"
+    )]
+    query_bed: String,
+    #[arg(
+        long = "output-original-vcf",
+        alias = "output-reference-vcf",
+        short = 'v',
+        help = "Output original assembly VCF file (Not sorted)"
+    )]
+    reference_vcf: String,
+    #[arg(
+        long = "output-new-vcf",
+        alias = "output-query-vcf",
+        short = 'c',
+        help = "Output new assembly VCF file (Not sorted)"
+    )]
+    query_vcf: String,
+    #[arg(
+        long = "original",
+        alias = "reference",
+        short = 'r',
+        help = "Original assembly FASTA (.fai file is required)"
+    )]
+    reference_sequence: String,
+    #[arg(
+        long = "new",
+        alias = "query",
+        short = 'q',
+        help = "New assembly FASTA (.fai file is required)"
+    )]
+    query_sequence: String,
+    #[arg(
+        long = "svlen",
+        short = 's',
+        default_value = "50",
+        help = "Do not write nucleotides if a length of reference or alternative sequence is longer than svlen"
+    )]
+    svlen: usize,
+}
 
-impl Command for Chain2BedVcf {
-    fn command_name(&self) -> &'static str {
-        "chain-to-bed-vcf"
-    }
-    fn config_subcommand(&self, app: App<'static, 'static>) -> App<'static, 'static> {
-        app.about("Create BED and VCF file from chain file")
-        .arg(
-            Arg::with_name("chain")
-                .index(1)
-                .takes_value(true)
-                .required(true)
-                .help("Input Chain file")
-        )
-        .arg(
-            Arg::with_name("reference-bed")
-                .long("output-original-bed")
-                .alias("output-reference-bed")
-                .short("b")
-                .takes_value(true)
-                .required(true)
-                .help("Output original assembly BED file (Not sorted)")
-        )
-        .arg(
-            Arg::with_name("query-bed")
-                .long("output-new-bed")
-                .alias("output-query-bed")
-                .short("d")
-                .takes_value(true)
-                .required(true)
-                .help("Output new assembly BED file (Not sorted)")
-        )
-        .arg(
-            Arg::with_name("reference-vcf")
-                .long("output-original-vcf")
-                .alias("output-reference-vcf")
-                .short("v")
-                .takes_value(true)
-                .required(true)
-                .help("Output original assembly VCF file (Not sorted)")
-        )
-        .arg(
-            Arg::with_name("query-vcf")
-                .long("output-new-vcf")
-                .alias("output-query-vcf")
-                .short("c")
-                .takes_value(true)
-                .required(true)
-                .help("Output new assembly VCF file (Not sorted)")
-        )
-        .arg(
-            Arg::with_name("reference-sequence")
-                .long("original")
-                .alias("reference")
-                .short("r")
-                .takes_value(true)
-                .required(true)
-                .help("Original assembly FASTA (.fai file is required)"),
-        )
-        .arg(
-            Arg::with_name("query-sequence")
-                .long("new")
-                .alias("query")
-                .short("q")
-                .takes_value(true)
-                .required(true)
-                .help("New assembly FASTA (.fai file is required)"),
-        ).arg(
-            Arg::with_name("svlen")
-                .long("svlen")
-                .short("s")
-                .takes_value(true)
-                .default_value("50")
-                .validator(validate_integer)
-                .help("Do not write nucleotides if a length of reference or alternative sequence is longer than svlen [default: 50]"),
-        )
-    }
-    fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()> {
+impl Chain2BedVcf {
+    // fn command_name(&self) -> &'static str {
+    //     "chain-to-bed-vcf"
+    // }
+    // fn config_subcommand(&self, app: App<'static, 'static>) -> App<'static, 'static> {
+    //     app.about("Create BED and VCF file from chain file")
+    //     .arg(
+    //         Arg::with_name("chain")
+    //             .index(1)
+    //             .takes_value(true)
+    //             .required(true)
+    //             .help("Input Chain file")
+    //     )
+    //     .arg(
+    //         Arg::with_name("reference-bed")
+    //             .long("output-original-bed")
+    //             .alias("output-reference-bed")
+    //             .short("b")
+    //             .takes_value(true)
+    //             .required(true)
+    //             .help("Output original assembly BED file (Not sorted)")
+    //     )
+    //     .arg(
+    //         Arg::with_name("query-bed")
+    //             .long("output-new-bed")
+    //             .alias("output-query-bed")
+    //             .short("d")
+    //             .takes_value(true)
+    //             .required(true)
+    //             .help("Output new assembly BED file (Not sorted)")
+    //     )
+    //     .arg(
+    //         Arg::with_name("reference-vcf")
+    //             .long("output-original-vcf")
+    //             .alias("output-reference-vcf")
+    //             .short("v")
+    //             .takes_value(true)
+    //             .required(true)
+    //             .help("Output original assembly VCF file (Not sorted)")
+    //     )
+    //     .arg(
+    //         Arg::with_name("query-vcf")
+    //             .long("output-new-vcf")
+    //             .alias("output-query-vcf")
+    //             .short("c")
+    //             .takes_value(true)
+    //             .required(true)
+    //             .help("Output new assembly VCF file (Not sorted)")
+    //     )
+    //     .arg(
+    //         Arg::with_name("reference-sequence")
+    //             .long("original")
+    //             .alias("reference")
+    //             .short("r")
+    //             .takes_value(true)
+    //             .required(true)
+    //             .help("Original assembly FASTA (.fai file is required)"),
+    //     )
+    //     .arg(
+    //         Arg::with_name("query-sequence")
+    //             .long("new")
+    //             .alias("query")
+    //             .short("q")
+    //             .takes_value(true)
+    //             .required(true)
+    //             .help("New assembly FASTA (.fai file is required)"),
+    //     ).arg(
+    //         Arg::with_name("svlen")
+    //             .long("svlen")
+    //             .short("s")
+    //             .takes_value(true)
+    //             .default_value("50")
+    //             .validator(validate_integer)
+    //             .help("Do not write nucleotides if a length of reference or alternative sequence is longer than svlen [default: 50]"),
+    //     )
+    // }
+    pub fn run(&self) -> anyhow::Result<()> {
         chain_to_bed_vcf_helper(
-            matches.value_of("chain").unwrap(),
-            matches.value_of("reference-sequence").unwrap(),
-            matches.value_of("query-sequence").unwrap(),
-            matches.value_of("reference-vcf").unwrap(),
-            matches.value_of("query-vcf").unwrap(),
-            matches.value_of("reference-bed").unwrap(),
-            matches.value_of("query-bed").unwrap(),
-            matches.value_of("svlen").unwrap().parse().unwrap(),
+            &self.chain,
+            &self.reference_sequence,
+            &self.query_sequence,
+            &self.reference_vcf,
+            &self.query_vcf,
+            &self.reference_bed,
+            &self.query_bed,
+            self.svlen,
         )?;
         Ok(())
     }
 }
 
-pub fn chain_to_bed_vcf(matches: &ArgMatches) {
-    chain_to_bed_vcf_helper(
-        matches.value_of("chain").unwrap(),
-        matches.value_of("reference-sequence").unwrap(),
-        matches.value_of("query-sequence").unwrap(),
-        matches.value_of("reference-vcf").unwrap(),
-        matches.value_of("query-vcf").unwrap(),
-        matches.value_of("reference-bed").unwrap(),
-        matches.value_of("query-bed").unwrap(),
-        matches.value_of("svlen").unwrap().parse().unwrap(),
-    )
-    .expect("failed to create BED and VCF");
-}
+// pub fn chain_to_bed_vcf(matches: &ArgMatches) {
+//     chain_to_bed_vcf_helper(
+//         matches.value_of("chain").unwrap(),
+//         matches.value_of("reference-sequence").unwrap(),
+//         matches.value_of("query-sequence").unwrap(),
+//         matches.value_of("reference-vcf").unwrap(),
+//         matches.value_of("query-vcf").unwrap(),
+//         matches.value_of("reference-bed").unwrap(),
+//         matches.value_of("query-bed").unwrap(),
+//         matches.value_of("svlen").unwrap().parse().unwrap(),
+//     )
+//     .expect("failed to create BED and VCF");
+// }
 
 #[allow(clippy::too_many_arguments)]
 fn chain_to_bed_vcf_helper(

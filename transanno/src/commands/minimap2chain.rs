@@ -1,48 +1,59 @@
-use super::Command;
 use anyhow::Context;
 use autocompress::{create, open, CompressionLevel};
-use clap::{App, Arg, ArgMatches};
+use clap::Args;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use std::io::{self, BufRead, Write};
 
-pub struct Minimap2Chain;
-
-impl Command for Minimap2Chain {
-    fn command_name(&self) -> &'static str {
-        "minimap2chain"
-    }
-    fn config_subcommand(&self, app: App<'static, 'static>) -> App<'static, 'static> {
-        app.about("Convert minimap2 result to chain file")
-            .long_about(
-                r#"Convert minimap2 result to chain file
+#[derive(Debug, Clone, Args)]
+#[command(
+    about = "Convert minimap2 result to chain file",
+    long_about = r#"Convert minimap2 result to chain file
 
 A paf file should be created with a command shown in below.
 
 $ minimap2 -cx asm5 --cs NEW_FASTA ORIGINAL_FASTA > PAF_FILE.paf
-"#,
-            )
-            .arg(
-                Arg::with_name("paf")
-                    .index(1)
-                    .takes_value(true)
-                    .required(true)
-                    .help("Input paf file"),
-            )
-            .arg(
-                Arg::with_name("chain")
-                    .long("output")
-                    .short("o")
-                    .takes_value(true)
-                    .required(true)
-                    .help("Output chain file"),
-            )
-    }
-    fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()> {
-        minimap2_to_chain_helper(
-            matches.value_of("paf").unwrap(),
-            matches.value_of("chain").unwrap(),
-        )?;
+"#
+)]
+pub struct Minimap2Chain {
+    #[arg(help = "Input paf file")]
+    paf: String,
+    #[arg(long = "output", short = 'o', help = "Output chain file")]
+    output: String,
+}
+
+impl Minimap2Chain {
+    //     fn command_name(&self) -> &'static str {
+    //         "minimap2chain"
+    //     }
+    //     fn config_subcommand(&self, app: App<'static, 'static>) -> App<'static, 'static> {
+    //         app.about("Convert minimap2 result to chain file")
+    //             .long_about(
+    //                 r#"Convert minimap2 result to chain file
+
+    // A paf file should be created with a command shown in below.
+
+    // $ minimap2 -cx asm5 --cs NEW_FASTA ORIGINAL_FASTA > PAF_FILE.paf
+    // "#,
+    //             )
+    //             .arg(
+    //                 Arg::with_name("paf")
+    //                     .index(1)
+    //                     .takes_value(true)
+    //                     .required(true)
+    //                     .help("Input paf file"),
+    //             )
+    //             .arg(
+    //                 Arg::with_name("chain")
+    //                     .long("output")
+    //                     .short("o")
+    //                     .takes_value(true)
+    //                     .required(true)
+    //                     .help("Output chain file"),
+    //             )
+    //     }
+    pub fn run(&self) -> anyhow::Result<()> {
+        minimap2_to_chain_helper(&self.paf, &self.output)?;
 
         Ok(())
     }
