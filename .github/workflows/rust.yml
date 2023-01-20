@@ -5,7 +5,7 @@ on:
     branches: [master, workflow-test, test-github-actions]
     tags: ["v*"]
   pull_request:
-    branches: [master]
+    branches: [master, new-clap]
 
 env:
   CARGO_TERM_COLOR: always
