@@ -2,10 +2,10 @@ name: Build
 
 on:
   push:
-    branches: [master, workflow-test, test-github-actions]
+    branches: [master, new-clap]
     tags: ["v*"]
   pull_request:
-    branches: [master, new-clap]
+    branches: [master]
 
 env:
   CARGO_TERM_COLOR: always
