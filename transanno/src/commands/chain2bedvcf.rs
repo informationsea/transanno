@@ -6,6 +6,7 @@ use clap::{App, Arg, ArgMatches};
 use liftover::chain::{Chain, Strand};
 use liftover::LiftOverError;
 use liftover::{reverse_acid, reverse_complement, GenomeSequence};
+use log::warn;
 use std::io::{self, Write};
 
 pub struct Chain2BedVcf;
@@ -155,7 +156,14 @@ fn chain_to_bed_vcf_helper(
 
     for one_chain in chain_file.chain_list {
         // Check chromosome length
-        one_chain.check_sequence_consistency(&mut reference_sequence, &mut query_sequence)?;
+        match one_chain.check_sequence_consistency(&mut reference_sequence, &mut query_sequence) {
+            Ok(_) => (),
+            Err(LiftOverError::ChromosomeNotFound(_)) => {
+                warn!("Skip chain ID: {}", one_chain.chain_id);
+                continue;
+            }
+            Err(e) => return Err(e),
+        }
 
         // write BED
         let (reference_start, reference_end) = convert_position(
