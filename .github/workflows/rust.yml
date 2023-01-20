@@ -60,7 +60,7 @@ jobs:
       - name: Git config
         if: ${{ matrix.config.os == 'windows-latest' }}
         run: git config --global core.autocrlf input
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install musl tools
         if: ${{ matrix.config.target == 'x86_64-unknown-linux-musl' }}
         run: sudo apt-get install musl-tools musl-dev
@@ -80,24 +80,15 @@ jobs:
           target: ${{ matrix.config.target }}
           override: true
           components: rustfmt, clippy
-      - name: Cache dependencies
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-cargo
+      - uses: actions/cache@v3
         with:
-          path: ~/.cargo/registry
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.crate') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-      - name: Cache target
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-target
-        with:
-          path: target
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.config.target }}-${{ hashFiles('**/*.o') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-${{ matrix.config.target }}
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Build
         uses: actions-rs/cargo@v1
         with:
@@ -127,7 +118,7 @@ jobs:
           cp LICENSE ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
           Compress-Archive -DestinationPath ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}.zip -Path ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag}}.zip
           path: |
@@ -165,7 +156,7 @@ jobs:
           - aarch64-unknown-linux-musl
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: ${{ env.APP_NAME }}-${{ matrix.target }}-${{ needs.tag.outputs.tag }}.zip
       - name: Upload Release Asset
