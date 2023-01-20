@@ -18,11 +18,11 @@ jobs:
       - name: Short tag
         id: short_tag
         if: ${{ startsWith(github.ref, 'refs/tags/v')  }}
-        run: echo "::set-output name=tag::$(basename ${{ github.ref }})"
+        run: echo "name=tag::$(basename ${{ github.ref }})" >> $GITHUB_OUTPUT
       - name: Hash
         id: hash
         if: ${{ startsWith(github.ref, 'refs/heads/')  }}
-        run: echo "::set-output name=tag::${{ github.sha }}"
+        run: echo "name=tag::${{ github.sha }}" >> $GITHUB_OUTPUT
     outputs:
       tag: ${{ steps.short_tag.outputs.tag }}${{ steps.hash.outputs.tag }}
 
