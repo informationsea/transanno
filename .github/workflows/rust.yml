@@ -40,10 +40,10 @@ jobs:
             target: x86_64-apple-darwin
             test: true
             cross: false
-          - os: macos-latest
-            target: aarch64-apple-darwin
-            test: false
-            cross: false
+          # - os: macos-latest
+          #   target: aarch64-apple-darwin
+          #   test: false
+          #   cross: false
           # - os: ubuntu-latest
           #   target: x86_64-unknown-linux-gnu
           #   test: true
@@ -52,10 +52,10 @@ jobs:
             target: x86_64-unknown-linux-musl
             test: true
             cross: false
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-musl
-            test: false
-            cross: true
+          # - os: ubuntu-latest
+          #   target: aarch64-unknown-linux-musl
+          #   test: false
+          #   cross: true
     steps:
       - name: Git config
         if: ${{ matrix.config.os == 'windows-latest' }}
@@ -151,9 +151,9 @@ jobs:
         target:
           - x86_64-pc-windows-msvc
           - x86_64-apple-darwin
-          - aarch64-apple-darwin
+          # - aarch64-apple-darwin
           - x86_64-unknown-linux-musl
-          - aarch64-unknown-linux-musl
+          # - aarch64-unknown-linux-musl
     steps:
       - name: Download artifacts
         uses: actions/download-artifact@v3
