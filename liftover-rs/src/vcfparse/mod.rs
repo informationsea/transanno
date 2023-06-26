@@ -12,7 +12,7 @@ pub use writer::VCFWriter;
 
 use nom::branch::alt;
 use nom::bytes::complete::{tag, take_till, take_while};
-use nom::multi::separated_list;
+use nom::multi::separated_list0;
 use nom::sequence::{delimited, separated_pair};
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -20,6 +20,7 @@ use std::fmt;
 use std::io::{self, Write};
 use std::str;
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct InfoPair<'a>(&'a [u8], Vec<&'a [u8]>);
 
 pub trait VCFRecord: fmt::Debug + Clone + PartialEq {
@@ -85,7 +86,7 @@ impl VCFHeaderItem {
         if value.starts_with(b"<") {
             let (_, detail_vec) = delimited(
                 tag("<"),
-                separated_list(
+                separated_list0(
                     tag(b","),
                     separated_pair(
                         take_while(|x| match x {

@@ -3,7 +3,7 @@ use indexmap::IndexMap;
 use log::{error, trace};
 use nom::bytes::complete::{is_not, tag};
 use nom::character::complete::line_ending;
-use nom::multi::separated_list;
+use nom::multi::separated_list0;
 use nom::sequence::separated_pair;
 use std::collections::HashMap;
 use std::fmt;
@@ -314,7 +314,7 @@ impl FromStr for Gff3Record {
         let (input, _) = tag("\t")(input)?;
         let (input, phase) = is_not(" \t\r\n")(input)?;
         let (input, _) = tag("\t")(input)?;
-        let (input, attributes) = separated_list(
+        let (input, attributes) = separated_list0(
             tag(";"),
             separated_pair(is_not("\r\n=;"), tag("="), is_not("\r\n=;")),
         )(input)?;

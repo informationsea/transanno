@@ -4,7 +4,7 @@ use log::{error, trace};
 use nom::branch::alt;
 use nom::bytes::complete::{is_not, tag};
 use nom::character::complete::line_ending;
-use nom::multi::separated_list;
+use nom::multi::separated_list0;
 use nom::sequence::{delimited, separated_pair};
 use once_cell::sync::Lazy;
 use regex::Regex;
@@ -314,7 +314,7 @@ impl FromStr for GtfRecord {
         let (input, _) = tag("\t")(input)?;
         let (input, phase) = is_not(" \t\r\n")(input)?;
         let (input, _) = tag("\t")(input)?;
-        let (input, attributes) = separated_list(
+        let (input, attributes) = separated_list0(
             tag("; "),
             separated_pair(
                 is_not(" \t\r\n\";"),

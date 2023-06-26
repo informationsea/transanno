@@ -7,8 +7,8 @@ pub enum VCFParseError {
     IoError(#[from] std::io::Error),
     #[error("Header parse error at line: {line}  column: {column}")]
     HeaderParseError { line: u32, column: usize },
-    #[error("Record parse error at line: {line}  column: {column}")]
-    RecordParseError { line: u32, column: usize },
+    #[error("Record parse error at line: {line}")]
+    RecordParseError { line: u32 },
     #[error("Allele frequency should be number at line: {line}")]
     FrequencyIsNotNumber { line: u32 },
     #[error("UTF-8 Error")]
@@ -34,7 +34,10 @@ pub fn as_header_error(line: u32, data: &[u8], e: (&[u8], nom::error::ErrorKind)
     VCFParseError::HeaderParseError { line, column }.into()
 }
 
-pub fn as_record_error(line: u32, data: &[u8], e: (&[u8], nom::error::ErrorKind)) -> VCFParseError {
-    let column = data.offset(e.0);
-    VCFParseError::RecordParseError { line, column }.into()
+pub fn as_record_error<'a>(
+    line: u32,
+    _data: &[u8],
+    _e: impl nom::error::ParseError<&'a [u8]>,
+) -> VCFParseError {
+    VCFParseError::RecordParseError { line }.into()
 }

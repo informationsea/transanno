@@ -1,7 +1,7 @@
 use super::{as_record_error, CompleteVCFRecord, InfoPair, VCFParseError, VCFRecord};
 use nom::bytes::complete::{tag, take_till, take_while};
 use nom::character::complete::digit1;
-use nom::multi::separated_nonempty_list;
+use nom::multi::separated_list1;
 use nom::IResult;
 use std::borrow::Cow;
 use std::fmt::{self, Debug};
@@ -154,16 +154,16 @@ impl<'a> PartialVCFRecord<'a> {
 
     fn complete_parse_helper(
         self,
-    ) -> Result<CompleteVCFRecord<'a>, nom::Err<(&'a [u8], nom::error::ErrorKind)>> {
+    ) -> Result<CompleteVCFRecord<'a>, nom::Err<impl nom::error::ParseError<&'a [u8]>>> {
         let info = if self.original_unparsed_info == b"." || self.original_unparsed_info == b"" {
             (&b""[..], Vec::new())
         } else {
-            separated_nonempty_list(tag(b";"), parse_info_tag)(self.original_unparsed_info)?
+            separated_list1(tag(b";"), parse_info_tag)(self.original_unparsed_info)?
         };
 
         let input = self.other;
         let (input, format) = if !input.is_empty() {
-            separated_nonempty_list(tag(b":"), take_while(|x| !is_separator2(x)))(input)?
+            separated_list1(tag(b":"), take_while(|x| !is_separator2(x)))(input)?
         } else {
             (input, vec![])
         };
@@ -175,11 +175,11 @@ impl<'a> PartialVCFRecord<'a> {
 
         let (_input, call) = if !input.is_empty() {
             let (input, _) = tag(b"\t")(input)?; // consume tab
-            separated_nonempty_list(
+            separated_list1(
                 tag(b"\t"),
-                separated_nonempty_list(
+                separated_list1(
                     tag(b":"),
-                    separated_nonempty_list(tag(b","), take_till(call_separator)),
+                    separated_list1(tag(b","), take_till(call_separator)),
                 ),
             )(input)?
         } else {
@@ -229,15 +229,14 @@ fn is_separator2(c: u8) -> bool {
     }
 }
 
-fn parse_info_tag(input: &[u8]) -> IResult<&[u8], InfoPair> {
+fn parse_info_tag<'a>(input: &'a [u8]) -> IResult<&'a [u8], InfoPair> {
     let (input, info_data) = take_till(is_separator)(input)?;
     let (info_data, tag_name) = take_till(|x| x == b'=')(info_data)?;
     let data = if info_data.is_empty() {
         vec![]
     } else {
         let (info_data, _) = tag(b"=")(info_data)?;
-        let (_info_data, data) =
-            separated_nonempty_list(tag(b","), take_till(|x| x == b','))(info_data)?;
+        let (_info_data, data) = separated_list1(tag(b","), take_till(|x| x == b','))(info_data)?;
         data
     };
 
@@ -257,7 +256,7 @@ fn parse_vcf_internal<'a>(
     let (input, _) = tag(b"\t")(input)?; // consume tab
     let (input, reference) = take_till(|c: u8| c == b'\t')(input)?;
     let (input, _) = tag(b"\t")(input)?; // consume tab
-    let (input, alternative) = separated_nonempty_list(
+    let (input, alternative) = separated_list1(
         tag(b","),
         take_while(|c: u8| match c {
             b',' | b'\t' => false,
