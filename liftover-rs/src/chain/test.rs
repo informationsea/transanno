@@ -73,20 +73,20 @@ fn test_load() -> Result<(), LiftOverError> {
                 }
             ],
             score: 4900,
-            reference_chromosome: Chromosome {
+            original_chromosome: Chromosome {
                 name: "chr22".to_string(),
                 length: 50818468,
             },
-            reference_strand: Strand::Forward,
-            reference_start: 12802792,
-            reference_end: 12807324,
-            query_chromosome: Chromosome {
+            original_strand: Strand::Forward,
+            original_start: 12802792,
+            original_end: 12807324,
+            new_chromosome: Chromosome {
                 name: "chr22".to_string(),
                 length: 51304566,
             },
-            query_strand: Strand::Reverse,
-            query_start: 28668699,
-            query_end: 28673237,
+            new_strand: Strand::Reverse,
+            new_start: 28668699,
+            new_end: 28673237,
             chain_id: "104".to_string(),
         }
     );
@@ -100,36 +100,6 @@ fn test_normalize_chain_file() -> anyhow::Result<()> {
     let mut reference =
         IndexedReader::from_file(&"testfiles/genomes/GRCh38/GRCh38.chr22.genome.fa")?;
     let mut query = IndexedReader::from_file(&"testfiles/genomes/GRCh37/GRCh37.chr22.genome.fa")?;
-
-    // let mut buffer = Vec::new();
-    // reference.sequence(
-    //     &test_chain.chain_list[1].reference_chromosome.name,
-    //     test_chain.chain_list[1].reference_start,
-    //     test_chain.chain_list[1].reference_end,
-    //     &mut buffer,
-    // )?;
-    // println!(
-    //     "reference: {} {} {} {:?}",
-    //     &test_chain.chain_list[1].reference_chromosome.name,
-    //     test_chain.chain_list[1].reference_start,
-    //     test_chain.chain_list[1].reference_end,
-    //     str::from_utf8(&buffer).unwrap()
-    // );
-
-    // let mut buffer = Vec::new();
-    // query.sequence(
-    //     &test_chain.chain_list[1].query_chromosome.name,
-    //     test_chain.chain_list[1].query_start,
-    //     test_chain.chain_list[1].query_end,
-    //     &mut buffer,
-    // )?;
-    // println!(
-    //     "reference: {} {} {} {:?}",
-    //     &test_chain.chain_list[1].query_chromosome.name,
-    //     test_chain.chain_list[1].query_start,
-    //     test_chain.chain_list[1].query_end,
-    //     str::from_utf8(&buffer).unwrap()
-    // );
 
     std::fs::create_dir_all("../target/test-output/")?;
 

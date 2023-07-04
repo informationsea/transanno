@@ -27,6 +27,7 @@ pub trait GenomeSequence: std::fmt::Debug {
     }
 
     fn get_contig_list(&self) -> Vec<(String, u64)>;
+    fn get_contig_length(&self, chromosome: &str) -> Option<u64>;
 }
 
 impl<R: Seek + Read + fmt::Debug> GenomeSequence for IndexedReader<R> {
@@ -60,6 +61,14 @@ impl<R: Seek + Read + fmt::Debug> GenomeSequence for IndexedReader<R> {
             .iter()
             .map(|x| (x.name.clone(), x.len))
             .collect()
+    }
+
+    fn get_contig_length(&self, chromosome: &str) -> Option<u64> {
+        self.index
+            .sequences()
+            .iter()
+            .find(|x| x.name == chromosome)
+            .map(|x| x.len)
     }
 }
 

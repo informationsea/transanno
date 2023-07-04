@@ -98,12 +98,12 @@ impl PositionLiftOver {
             trace!(
                 "Register chain: {}  ({} -> {})",
                 one_chain.chain_id,
-                one_chain.reference_chromosome.name,
-                one_chain.query_chromosome.name
+                one_chain.original_chromosome.name,
+                one_chain.new_chromosome.name
             );
 
             let one_reference_interval = reference_interval
-                .entry(one_chain.reference_chromosome.name.clone())
+                .entry(one_chain.original_chromosome.name.clone())
                 .or_insert_with(IntervalTree::new);
             // let one_query_interval = query_interval
             //     .entry(one_chain.query_chromosome.name.clone())
@@ -113,8 +113,8 @@ impl PositionLiftOver {
                 one_chain,
                 one_reference_interval,
                 // one_query_interval,
-                chain_file.reference_chromosome_name_to_index[&one_chain.reference_chromosome.name],
-                chain_file.query_chromosome_name_to_index[&one_chain.query_chromosome.name],
+                chain_file.original_chromosome_name_to_index[&one_chain.original_chromosome.name],
+                chain_file.new_chromosome_name_to_index[&one_chain.new_chromosome.name],
                 i,
             );
         }
@@ -151,19 +151,19 @@ impl PositionLiftOver {
     }
 
     pub fn reference_chromosomes(&self) -> &[Chromosome] {
-        &self.chain_file.reference_chromosomes
+        &self.chain_file.original_chromosomes
     }
 
     pub fn query_chromosomes(&self) -> &[Chromosome] {
-        &self.chain_file.query_chromosomes
+        &self.chain_file.new_chromosomes
     }
 
     pub fn reference_chromosome_by_name(&self, name: &str) -> Option<&Chromosome> {
-        self.chain_file.reference_chromosome_by_name(name)
+        self.chain_file.original_chromosome_by_name(name)
     }
 
     pub fn query_chromosome_by_name(&self, name: &str) -> Option<&Chromosome> {
-        self.chain_file.query_chromosome_by_name(name)
+        self.chain_file.new_chromosome_by_name(name)
     }
 
     // LiftOver a genomic coordinate. A position should be zero-based.
@@ -391,10 +391,10 @@ fn chain_register_interval_tree(
     query_chromosome_index: usize,
     chain_index: usize,
 ) {
-    assert_eq!(chain.reference_strand, Strand::Forward);
+    assert_eq!(chain.original_strand, Strand::Forward);
 
-    let mut reference_current = chain.reference_start;
-    let mut query_current = chain.query_start;
+    let mut reference_current = chain.original_start;
+    let mut query_current = chain.new_start;
     for one in chain.chain_interval.iter() {
         // insert un-gapped region
         let reference_next = reference_current + one.size;
@@ -460,7 +460,7 @@ fn register_one_interval(
     query_next: u64,
     is_in_gap: bool,
 ) {
-    match chain.query_strand {
+    match chain.new_strand {
         Strand::Forward => {
             let target_region = TargetRegion {
                 reference_chromosome_index,
@@ -498,8 +498,8 @@ fn register_one_interval(
                 chain_index,
                 reference_start: reference_current,
                 reference_end: reference_next,
-                query_start: chain.query_chromosome.length - query_next,
-                query_end: chain.query_chromosome.length - query_current,
+                query_start: chain.new_chromosome.length - query_next,
+                query_end: chain.new_chromosome.length - query_current,
                 strand: Strand::Reverse,
                 is_in_gap,
             };

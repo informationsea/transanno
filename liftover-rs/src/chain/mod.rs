@@ -74,14 +74,14 @@ impl ChainInterval {
 pub struct Chain {
     pub chain_interval: Vec<ChainInterval>,
     pub score: i64,
-    pub reference_chromosome: Chromosome,
-    pub reference_strand: Strand,
-    pub reference_start: u64,
-    pub reference_end: u64,
-    pub query_strand: Strand,
-    pub query_chromosome: Chromosome,
-    pub query_start: u64,
-    pub query_end: u64,
+    pub original_chromosome: Chromosome,
+    pub original_strand: Strand,
+    pub original_start: u64,
+    pub original_end: u64,
+    pub new_strand: Strand,
+    pub new_chromosome: Chromosome,
+    pub new_start: u64,
+    pub new_end: u64,
     pub chain_id: String,
 }
 
@@ -132,63 +132,63 @@ impl Chain {
         if let Some(expected_len) = reference
             .get_contig_list()
             .iter()
-            .filter(|x| x.0 == self.reference_chromosome.name)
+            .filter(|x| x.0 == self.original_chromosome.name)
             .map(|x| x.1)
             .next()
         {
-            if expected_len != self.reference_chromosome.length {
+            if expected_len != self.original_chromosome.length {
                 error!(
                     "Length of {} in chain file is {}, but {} in reference FASTA is {}",
-                    self.reference_chromosome.name,
-                    self.reference_chromosome.length,
-                    self.reference_chromosome.name,
+                    self.original_chromosome.name,
+                    self.original_chromosome.length,
+                    self.original_chromosome.name,
                     expected_len
                 );
                 return Err(LiftOverError::UnmatchedReferenceChromosomeLength(
-                    self.reference_chromosome.name.to_string(),
-                    self.reference_chromosome.length,
+                    self.original_chromosome.name.to_string(),
+                    self.original_chromosome.length,
                     expected_len,
                 ));
             }
         } else {
             warn!(
                 "Chromosome {} is not found in reference FASTA",
-                self.reference_chromosome.name
+                self.original_chromosome.name
             );
             return Err(LiftOverError::ChromosomeNotFound(
-                self.reference_chromosome.name.to_string(),
+                self.original_chromosome.name.to_string(),
             ));
         }
 
         if let Some(expected_len) = query
             .get_contig_list()
             .iter()
-            .filter(|x| x.0 == self.query_chromosome.name)
+            .filter(|x| x.0 == self.new_chromosome.name)
             .map(|x| x.1)
             .next()
         {
-            if expected_len != self.query_chromosome.length {
+            if expected_len != self.new_chromosome.length {
                 error!(
                     "Length of {} in chain file is {}, but {} in query FASTA is {}",
-                    self.query_chromosome.name,
-                    self.query_chromosome.length,
-                    self.query_chromosome.name,
+                    self.new_chromosome.name,
+                    self.new_chromosome.length,
+                    self.new_chromosome.name,
                     expected_len
                 );
 
                 return Err(LiftOverError::UnmatchedQueryChromosomeLength(
-                    self.reference_chromosome.name.to_string(),
-                    self.reference_chromosome.length,
+                    self.original_chromosome.name.to_string(),
+                    self.original_chromosome.length,
                     expected_len,
                 ));
             }
         } else {
             warn!(
                 "Chromosome {} is not found in query FASTA",
-                self.query_chromosome.name
+                self.new_chromosome.name
             );
             return Err(LiftOverError::ChromosomeNotFound(
-                self.query_chromosome.name.to_string(),
+                self.new_chromosome.name.to_string(),
             ));
         }
         Ok(())
@@ -199,15 +199,15 @@ impl Chain {
         reference: &mut G,
         query: &mut G,
     ) -> Result<Chain, LiftOverError> {
-        if self.reference_strand == Strand::Reverse {
+        if self.original_strand == Strand::Reverse {
             return Err(LiftOverError::ReferenceStrandShouldForward);
         }
         self.check_sequence_consistency(reference, query)?;
 
         let mut new_intervals = Vec::new();
 
-        let mut current_reference = self.reference_start;
-        let mut current_query = self.query_start;
+        let mut current_reference = self.original_start;
+        let mut current_query = self.new_start;
         let mut remain_size = 0;
 
         for (i, one_interval) in self.chain_interval.iter().enumerate() {
@@ -230,7 +230,7 @@ impl Chain {
             let next_query = current_query + one_interval.size + remain_size;
             trace!(
                 "next reference: {}:{} - {} {} {}",
-                &self.reference_chromosome.name,
+                &self.original_chromosome.name,
                 next_reference,
                 current_reference,
                 one_interval.size,
@@ -238,16 +238,16 @@ impl Chain {
             );
 
             let reference_seq = reference.get_sequence(
-                &self.reference_chromosome.name,
+                &self.original_chromosome.name,
                 next_reference,
                 next_reference + one_interval.difference_reference.unwrap_or(0),
             )?;
 
-            match self.query_strand {
+            match self.new_strand {
                 Strand::Forward => {
                     trace!(
                         "next query+: {}:{} - {} {} {}",
-                        &self.query_chromosome.name,
+                        &self.new_chromosome.name,
                         next_query,
                         next_query + one_interval.difference_query.unwrap_or(0),
                         one_interval.size,
@@ -257,27 +257,27 @@ impl Chain {
                 Strand::Reverse => {
                     trace!(
                         "next query-: {}:{} - {} {} {}",
-                        &self.query_chromosome.name,
-                        self.query_chromosome.length
+                        &self.new_chromosome.name,
+                        self.new_chromosome.length
                             - (next_query + one_interval.difference_query.unwrap_or(0)),
-                        self.query_chromosome.length - next_query,
+                        self.new_chromosome.length - next_query,
                         one_interval.size,
                         remain_size
                     );
                 }
             };
 
-            let query_seq = match self.query_strand {
+            let query_seq = match self.new_strand {
                 Strand::Forward => query.get_sequence(
-                    &self.query_chromosome.name,
+                    &self.new_chromosome.name,
                     next_query,
                     next_query + one_interval.difference_query.unwrap_or(0),
                 )?,
                 Strand::Reverse => reverse_complement(&query.get_sequence(
-                    &self.query_chromosome.name,
-                    self.query_chromosome.length
+                    &self.new_chromosome.name,
+                    self.new_chromosome.length
                         - (next_query + one_interval.difference_query.unwrap_or(0)),
-                    self.query_chromosome.length - next_query,
+                    self.new_chromosome.length - next_query,
                 )?),
             };
             trace!("query seq ok");
@@ -285,7 +285,7 @@ impl Chain {
             let do_not_normalize = query_seq.contains(&b'N') || reference_seq.contains(&b'N');
 
             let variant = Variant {
-                chromosome: self.reference_chromosome.name.to_string(),
+                chromosome: self.original_chromosome.name.to_string(),
                 position: next_reference,
                 reference: reference_seq,
                 alternative: vec![query_seq],
@@ -312,20 +312,20 @@ impl Chain {
             } else {
                 trace!("offset fetch: {}/{}/{}", next_reference, next_query, offset);
                 let offset_reference_seq = reference.get_sequence(
-                    &self.reference_chromosome.name,
+                    &self.original_chromosome.name,
                     next_reference - offset,
                     next_reference,
                 )?;
-                let offset_query_seq = match self.query_strand {
+                let offset_query_seq = match self.new_strand {
                     Strand::Forward => query.get_sequence(
-                        &self.query_chromosome.name,
+                        &self.new_chromosome.name,
                         next_query - offset,
                         next_query,
                     )?,
                     Strand::Reverse => reverse_complement(&query.get_sequence(
-                        &self.query_chromosome.name,
-                        self.query_chromosome.length - next_query,
-                        self.query_chromosome.length - (next_query - offset),
+                        &self.new_chromosome.name,
+                        self.new_chromosome.length - next_query,
+                        self.new_chromosome.length - (next_query - offset),
                     )?),
                 };
                 if offset_reference_seq == offset_query_seq {
@@ -381,57 +381,65 @@ impl Chain {
 #[derive(Debug, Default, Clone, PartialEq)]
 pub struct ChainFile {
     pub chain_list: Vec<Chain>,
-    pub reference_chromosomes: Vec<Chromosome>,
-    pub query_chromosomes: Vec<Chromosome>,
+    pub original_chromosomes: Vec<Chromosome>,
+    pub new_chromosomes: Vec<Chromosome>,
 
-    pub reference_chromosome_name_to_index: HashMap<String, usize>,
-    pub query_chromosome_name_to_index: HashMap<String, usize>,
+    pub original_chromosome_name_to_index: HashMap<String, usize>,
+    pub new_chromosome_name_to_index: HashMap<String, usize>,
 }
 
 impl ChainFile {
     pub fn left_align<G: GenomeSequence>(
         &self,
-        reference: &mut G,
-        query: &mut G,
+        original_sequence: &mut G,
+        new_sequence: &mut G,
     ) -> Result<ChainFile, LiftOverError> {
-        info!("start  chain file left align");
+        info!("start chain file left align");
         let mut new_chain_list = Vec::new();
-        let mut warned_ref_chrom = HashSet::new();
+        let mut warned_original_chrom = HashSet::new();
         let mut warned_new_chrom = HashSet::new();
         for one_chain in self.chain_list.iter() {
-            if reference
-                .get_contig_list()
-                .iter()
-                .filter(|x| x.0 == one_chain.reference_chromosome.name)
-                .next()
-                .is_none()
+            if let Some(length) =
+                original_sequence.get_contig_length(&one_chain.original_chromosome.name)
             {
-                if !warned_ref_chrom.contains(&one_chain.reference_chromosome.name) {
+                if one_chain.original_chromosome.length != length {
+                    if !warned_original_chrom.contains(&one_chain.original_chromosome.name) {
+                        warn!("Length of chromosome {} is not match between chain file and original FASTA. Skipping...", one_chain.original_chromosome.name);
+                        warned_original_chrom.insert(one_chain.original_chromosome.name.clone());
+                    }
+                    continue;
+                }
+            } else {
+                if !warned_original_chrom.contains(&one_chain.original_chromosome.name) {
                     warn!(
                         "Chromosome {} is not found in original FASTA. Skipping...",
-                        one_chain.reference_chromosome.name
+                        one_chain.original_chromosome.name
                     );
-                    warned_ref_chrom.insert(one_chain.reference_chromosome.name.clone());
+                    warned_original_chrom.insert(one_chain.original_chromosome.name.clone());
                 }
                 continue;
             }
-            if query
-                .get_contig_list()
-                .iter()
-                .filter(|x| x.0 == one_chain.query_chromosome.name)
-                .next()
-                .is_none()
-            {
-                if !warned_new_chrom.contains(&one_chain.query_chromosome.name) {
+
+            if let Some(length) = new_sequence.get_contig_length(&one_chain.new_chromosome.name) {
+                if one_chain.new_chromosome.length != length {
+                    if !warned_new_chrom.contains(&one_chain.new_chromosome.name) {
+                        warn!("Length of chromosome {} is not match between chain file and new FASTA. Skipping...", one_chain.new_chromosome.name);
+                        warned_new_chrom.insert(one_chain.new_chromosome.name.clone());
+                    }
+                    continue;
+                }
+            } else {
+                if !warned_new_chrom.contains(&one_chain.new_chromosome.name) {
                     warn!(
                         "Chromosome {} is not found in new FASTA. Skipping...",
-                        one_chain.query_chromosome.name
+                        one_chain.new_chromosome.name
                     );
-                    warned_new_chrom.insert(one_chain.query_chromosome.name.clone());
+                    warned_new_chrom.insert(one_chain.new_chromosome.name.clone());
                 }
                 continue;
             }
-            new_chain_list.push(one_chain.left_align(reference, query)?);
+
+            new_chain_list.push(one_chain.left_align(original_sequence, new_sequence)?);
         }
         if new_chain_list.is_empty() {
             error!("No chain found. You may use wrong FASTA.");
@@ -441,10 +449,10 @@ impl ChainFile {
 
         Ok(ChainFile {
             chain_list: new_chain_list,
-            reference_chromosomes: self.reference_chromosomes.clone(),
-            query_chromosomes: self.query_chromosomes.clone(),
-            reference_chromosome_name_to_index: self.reference_chromosome_name_to_index.clone(),
-            query_chromosome_name_to_index: self.query_chromosome_name_to_index.clone(),
+            original_chromosomes: self.original_chromosomes.clone(),
+            new_chromosomes: self.new_chromosomes.clone(),
+            original_chromosome_name_to_index: self.original_chromosome_name_to_index.clone(),
+            new_chromosome_name_to_index: self.new_chromosome_name_to_index.clone(),
         })
     }
 
@@ -457,8 +465,8 @@ impl ChainFile {
         let mut chain_list = Vec::new();
         let mut current_chain: Option<Chain> = None;
 
-        let mut reference_chromosomes: Vec<Chromosome> = Vec::new();
-        let mut query_chromosomes: Vec<Chromosome> = Vec::new();
+        let mut original_chromosomes: Vec<Chromosome> = Vec::new();
+        let mut new_chromosomes: Vec<Chromosome> = Vec::new();
 
         loop {
             line_num += 1;
@@ -497,20 +505,20 @@ impl ChainFile {
                     status = LiftOverReadStatus::InChain;
                     current_chain = Some(Chain {
                         score: elements[1].parse()?,
-                        reference_chromosome: Chromosome {
+                        original_chromosome: Chromosome {
                             name: elements[2].to_string(),
                             length: elements[3].parse()?,
                         },
-                        reference_strand: elements[4].parse()?,
-                        reference_start: elements[5].parse()?,
-                        reference_end: elements[6].parse()?,
-                        query_chromosome: Chromosome {
+                        original_strand: elements[4].parse()?,
+                        original_start: elements[5].parse()?,
+                        original_end: elements[6].parse()?,
+                        new_chromosome: Chromosome {
                             name: elements[7].to_string(),
                             length: elements[8].parse()?,
                         },
-                        query_strand: elements[9].parse()?,
-                        query_start: elements[10].parse()?,
-                        query_end: elements[11].parse()?,
+                        new_strand: elements[9].parse()?,
+                        new_start: elements[10].parse()?,
+                        new_end: elements[11].parse()?,
                         chain_id: elements[12].to_string(),
                         chain_interval: Vec::new(),
                     });
@@ -540,31 +548,31 @@ impl ChainFile {
                             status = LiftOverReadStatus::Outside;
 
                             // register chromosome
-                            if let Some(registered_chromosome) = reference_chromosomes
+                            if let Some(registered_chromosome) = original_chromosomes
                                 .iter()
-                                .find(|x| x.name == current_chain.reference_chromosome.name)
+                                .find(|x| x.name == current_chain.original_chromosome.name)
                             {
                                 if registered_chromosome.length
-                                    != current_chain.reference_chromosome.length
+                                    != current_chain.original_chromosome.length
                                 {
                                     return Err(LiftOverError::InvalidChromosomeLength(line_num));
                                 }
                             } else {
-                                reference_chromosomes
-                                    .push(current_chain.reference_chromosome.clone());
+                                original_chromosomes
+                                    .push(current_chain.original_chromosome.clone());
                             }
 
-                            if let Some(registered_chromosome) = query_chromosomes
+                            if let Some(registered_chromosome) = new_chromosomes
                                 .iter()
-                                .find(|x| x.name == current_chain.query_chromosome.name)
+                                .find(|x| x.name == current_chain.new_chromosome.name)
                             {
                                 if registered_chromosome.length
-                                    != current_chain.query_chromosome.length
+                                    != current_chain.new_chromosome.length
                                 {
                                     return Err(LiftOverError::InvalidChromosomeLength(line_num));
                                 }
                             } else {
-                                query_chromosomes.push(current_chain.query_chromosome.clone());
+                                new_chromosomes.push(current_chain.new_chromosome.clone());
                             }
 
                             chain_list.push(current_chain);
@@ -578,18 +586,18 @@ impl ChainFile {
 
         Ok(ChainFile {
             chain_list,
-            reference_chromosome_name_to_index: reference_chromosomes
+            original_chromosome_name_to_index: original_chromosomes
                 .iter()
                 .enumerate()
                 .map(|(i, x)| (x.name.clone(), i))
                 .collect(),
-            query_chromosome_name_to_index: query_chromosomes
+            new_chromosome_name_to_index: new_chromosomes
                 .iter()
                 .enumerate()
                 .map(|(i, x)| (x.name.clone(), i))
                 .collect(),
-            reference_chromosomes,
-            query_chromosomes,
+            original_chromosomes,
+            new_chromosomes,
         })
     }
 
@@ -602,16 +610,16 @@ impl ChainFile {
                 writer,
                 "chain {} {} {} {} {} {} {} {} {} {} {} {}",
                 one_chain.score,
-                one_chain.reference_chromosome.name,
-                one_chain.reference_chromosome.length,
-                one_chain.reference_strand,
-                one_chain.reference_start,
-                one_chain.reference_end,
-                one_chain.query_chromosome.name,
-                one_chain.query_chromosome.length,
-                one_chain.query_strand,
-                one_chain.query_start,
-                one_chain.query_end,
+                one_chain.original_chromosome.name,
+                one_chain.original_chromosome.length,
+                one_chain.original_strand,
+                one_chain.original_start,
+                one_chain.original_end,
+                one_chain.new_chromosome.name,
+                one_chain.new_chromosome.length,
+                one_chain.new_strand,
+                one_chain.new_start,
+                one_chain.new_end,
                 one_chain.chain_id
             )?;
             for one_interval in one_chain.chain_interval.iter() {
@@ -632,16 +640,16 @@ impl ChainFile {
         Ok(())
     }
 
-    pub fn query_chromosome_by_name(&self, name: &str) -> Option<&Chromosome> {
-        self.query_chromosome_name_to_index
+    pub fn new_chromosome_by_name(&self, name: &str) -> Option<&Chromosome> {
+        self.new_chromosome_name_to_index
             .get(name)
-            .map(|x| &self.query_chromosomes[*x])
+            .map(|x| &self.new_chromosomes[*x])
     }
 
-    pub fn reference_chromosome_by_name(&self, name: &str) -> Option<&Chromosome> {
-        self.reference_chromosome_name_to_index
+    pub fn original_chromosome_by_name(&self, name: &str) -> Option<&Chromosome> {
+        self.original_chromosome_name_to_index
             .get(name)
-            .map(|x| &self.reference_chromosomes[*x])
+            .map(|x| &self.original_chromosomes[*x])
     }
 }
 

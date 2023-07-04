@@ -14,14 +14,14 @@ pub struct LiftVcf {
         short = 'r',
         help = "Original assembly FASTA (.fai file is required)"
     )]
-    reference_sequence: String,
+    original_sequence: String,
     #[arg(
         long = "new-assembly",
         alias = "query",
         short = 'q',
         help = "New assembly FASTA (.fai file is required)"
     )]
-    query_sequence: String,
+    new_sequence: String,
     #[arg(long = "chain", short = 'c', help = "chain file")]
     chain: String,
     #[arg(long = "vcf", short = 'v', help = "input VCF file to liftOver")]
@@ -101,9 +101,9 @@ pub struct LiftVcf {
 impl LiftVcf {
     pub fn run(&self) -> anyhow::Result<()> {
         info!("start loading chain and fasta");
-        let mut original_seq = IndexedReader::from_file(&self.reference_sequence)
+        let mut original_seq = IndexedReader::from_file(&self.original_sequence)
             .context("Failed to load original assembly FASTA")?;
-        let mut new_seq = IndexedReader::from_file(&self.query_sequence)
+        let mut new_seq = IndexedReader::from_file(&self.new_sequence)
             .context("Failed to load new assembly FASTA")?;
         let chain = chain::ChainFile::load(autocompress::open(&self.chain)?)?
             .left_align(&mut original_seq, &mut new_seq)

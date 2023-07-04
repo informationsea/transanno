@@ -219,30 +219,30 @@ fn chain_to_bed_vcf_helper(
 
         // write BED
         let (reference_start, reference_end) = convert_position(
-            one_chain.reference_start,
-            one_chain.reference_end,
-            one_chain.reference_chromosome.length,
-            one_chain.reference_strand,
+            one_chain.original_start,
+            one_chain.original_end,
+            one_chain.original_chromosome.length,
+            one_chain.original_strand,
         );
         let (query_start, query_end) = convert_position(
-            one_chain.query_start,
-            one_chain.query_end,
-            one_chain.query_chromosome.length,
-            one_chain.query_strand,
+            one_chain.new_start,
+            one_chain.new_end,
+            one_chain.new_chromosome.length,
+            one_chain.new_strand,
         );
 
         writeln!(
             reference_bed_writer,
             "{}\t{}\t{}\tchain_id:{};{}:{}-{}\t{}\t{}",
-            one_chain.reference_chromosome.name,
+            one_chain.original_chromosome.name,
             reference_start,
             reference_end,
             one_chain.chain_id,
-            one_chain.query_chromosome.name,
+            one_chain.new_chromosome.name,
             query_start + 1,
             query_end,
             one_chain.score,
-            if one_chain.reference_strand == one_chain.query_strand {
+            if one_chain.original_strand == one_chain.new_strand {
                 "+"
             } else {
                 "-"
@@ -253,15 +253,15 @@ fn chain_to_bed_vcf_helper(
         writeln!(
             query_bed_writer,
             "{}\t{}\t{}\tchain_id:{};{}:{}-{}\t{}\t{}",
-            one_chain.query_chromosome.name,
+            one_chain.new_chromosome.name,
             query_start,
             query_end,
             one_chain.chain_id,
-            one_chain.reference_chromosome.name,
+            one_chain.original_chromosome.name,
             reference_start + 1,
             reference_end,
             one_chain.score,
-            if one_chain.reference_strand == one_chain.query_strand {
+            if one_chain.original_strand == one_chain.new_strand {
                 "+"
             } else {
                 "-"
@@ -291,35 +291,35 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
     sv_len: usize,
 ) -> Result<(), LiftOverError> {
     // Write VCF
-    let mut reference_current = one_chain.reference_start;
-    let mut query_current = one_chain.query_start;
+    let mut reference_current = one_chain.original_start;
+    let mut query_current = one_chain.new_start;
     for one_interval in one_chain.chain_interval {
         let reference_next = reference_current + one_interval.size;
         let query_next = query_current + one_interval.size;
         let (interval_reference_start, interval_reference_end) = convert_position(
             reference_current,
             reference_next,
-            one_chain.reference_chromosome.length,
-            one_chain.reference_strand,
+            one_chain.original_chromosome.length,
+            one_chain.original_strand,
         );
         let (interval_query_start, interval_query_end) = convert_position(
             query_current,
             query_next,
-            one_chain.query_chromosome.length,
-            one_chain.query_strand,
+            one_chain.new_chromosome.length,
+            one_chain.new_strand,
         );
 
         let reference_sequence_data = reference_sequence.get_sequence(
-            &one_chain.reference_chromosome.name,
+            &one_chain.original_chromosome.name,
             interval_reference_start,
             interval_reference_end,
         )?;
         let query_sequence_data_tmp = query_sequence.get_sequence(
-            &one_chain.query_chromosome.name,
+            &one_chain.new_chromosome.name,
             interval_query_start,
             interval_query_end,
         )?;
-        let query_sequence_data = if one_chain.reference_strand == one_chain.query_strand {
+        let query_sequence_data = if one_chain.original_strand == one_chain.new_strand {
             query_sequence_data_tmp
         } else {
             reverse_complement(&query_sequence_data_tmp)
@@ -332,12 +332,12 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
             .collect();
 
         // TODO: merge MNV
-        assert_eq!(one_chain.reference_strand, Strand::Forward);
+        assert_eq!(one_chain.original_strand, Strand::Forward);
         for one_position in different_positions {
-            let query_vcf_pos = match one_chain.query_strand {
+            let query_vcf_pos = match one_chain.new_strand {
                 Strand::Forward => one_position.0 as u64 + query_current + 1,
                 Strand::Reverse => {
-                    one_chain.query_chromosome.length - (one_position.0 as u64 + query_current + 1)
+                    one_chain.new_chromosome.length - (one_position.0 as u64 + query_current + 1)
                         + 1
                 }
             };
@@ -345,7 +345,7 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
             write!(
                 reference_vcf_writer,
                 "{}\t{}\t.\t",
-                one_chain.reference_chromosome.name,
+                one_chain.original_chromosome.name,
                 one_position.0 as u64 + reference_current + 1,
             )?;
             reference_vcf_writer.write_all(&[*(one_position.1).0])?;
@@ -354,19 +354,19 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
             writeln!(
                 reference_vcf_writer,
                 "\t.\t.\tTARGET_CHROM={};TARGET_POS={};CHAIN_ID={};STRAND={}",
-                one_chain.query_chromosome.name,
+                one_chain.new_chromosome.name,
                 query_vcf_pos,
                 one_chain.chain_id,
-                one_chain.query_strand
+                one_chain.new_strand
             )?;
 
             // write query VCF
             write!(
                 query_vcf_writer,
                 "{}\t{}\t.\t",
-                one_chain.query_chromosome.name, query_vcf_pos,
+                one_chain.new_chromosome.name, query_vcf_pos,
             )?;
-            match one_chain.query_strand {
+            match one_chain.new_strand {
                 Strand::Forward => {
                     query_vcf_writer.write_all(&[*(one_position.1).1])?;
                     query_vcf_writer.write_all(b"\t")?;
@@ -381,10 +381,10 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
             writeln!(
                 query_vcf_writer,
                 "\t.\t.\tTARGET_CHROM={};TARGET_POS={};CHAIN_ID={};STRAND={}",
-                one_chain.reference_chromosome.name,
+                one_chain.original_chromosome.name,
                 one_position.0 as u64 + reference_current + 1,
                 one_chain.chain_id,
-                one_chain.query_strand
+                one_chain.new_strand
             )?;
         }
 
@@ -401,37 +401,37 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
         let (interval_reference_start, interval_reference_end) = convert_position(
             reference_current,
             reference_next,
-            one_chain.reference_chromosome.length,
-            one_chain.reference_strand,
+            one_chain.original_chromosome.length,
+            one_chain.original_strand,
         );
         let (interval_query_start, interval_query_end) = convert_position(
             query_current,
             query_next,
-            one_chain.query_chromosome.length,
-            one_chain.query_strand,
+            one_chain.new_chromosome.length,
+            one_chain.new_strand,
         );
 
         let reference_sequence_data = reference_sequence.get_sequence(
-            &one_chain.reference_chromosome.name,
+            &one_chain.original_chromosome.name,
             interval_reference_start,
             interval_reference_end,
         )?;
         let query_sequence_data_tmp = query_sequence.get_sequence(
-            &one_chain.query_chromosome.name,
+            &one_chain.new_chromosome.name,
             interval_query_start,
             interval_query_end,
         )?;
-        let query_sequence_data = if one_chain.reference_strand == one_chain.query_strand {
+        let query_sequence_data = if one_chain.original_strand == one_chain.new_strand {
             query_sequence_data_tmp
         } else {
             reverse_complement(&query_sequence_data_tmp)
         };
 
         if reference_sequence_data != query_sequence_data {
-            let query_vcf_pos = match one_chain.query_strand {
+            let query_vcf_pos = match one_chain.new_strand {
                 Strand::Forward => query_current + 1,
                 Strand::Reverse => {
-                    one_chain.query_chromosome.length
+                    one_chain.new_chromosome.length
                         - (query_current + query_sequence_data.len() as u64)
                         + 1
                 }
@@ -451,7 +451,7 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
                 write!(
                     reference_vcf_writer,
                     "{}\t{}\t.\t",
-                    one_chain.reference_chromosome.name,
+                    one_chain.original_chromosome.name,
                     reference_current + 1,
                 )?;
                 reference_vcf_writer.write_all(&reference_sequence_data[0..1])?;
@@ -460,12 +460,12 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
                     "\t<{}>\t.\t.\tEND={};TARGET_CHROM={};TARGET_POS={};SVTYPE={};SVLEN={};CHAIN_ID={};STRAND={}",
                     sv_type,
                     reference_current + reference_sequence_data.len() as u64,
-                    one_chain.query_chromosome.name,
+                    one_chain.new_chromosome.name,
                     query_vcf_pos,
                     sv_type,
                     sv_len,
                     one_chain.chain_id,
-                    one_chain.query_strand
+                    one_chain.new_strand
                 )?;
 
                 // Write Query VCF
@@ -480,9 +480,9 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
                 write!(
                     query_vcf_writer,
                     "{}\t{}\t.\t",
-                    one_chain.query_chromosome.name, query_vcf_pos,
+                    one_chain.new_chromosome.name, query_vcf_pos,
                 )?;
-                let query_vcf_ref = match one_chain.query_strand {
+                let query_vcf_ref = match one_chain.new_strand {
                     Strand::Forward => query_sequence_data,
                     Strand::Reverse => reverse_complement(&query_sequence_data),
                 };
@@ -492,18 +492,18 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
                     "\t<{}>\t.\t.\tEND={};TARGET_CHROM={};TARGET_POS={};SVTYPE={};SVLEN={};CHAIN_ID={};STRAND={}",
                     sv_type_query,
                     query_vcf_pos + query_vcf_ref.len() as u64,
-                    one_chain.reference_chromosome.name,
+                    one_chain.original_chromosome.name,
                     query_vcf_pos,
                     sv_type_query,
                     sv_len,
                     one_chain.chain_id,
-                    one_chain.query_strand
+                    one_chain.new_strand
                 )?;
             } else {
                 write!(
                     reference_vcf_writer,
                     "{}\t{}\t.\t",
-                    one_chain.reference_chromosome.name,
+                    one_chain.original_chromosome.name,
                     reference_current + 1,
                 )?;
                 reference_vcf_writer.write_all(&reference_sequence_data)?;
@@ -512,25 +512,25 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
                 writeln!(
                     reference_vcf_writer,
                     "\t.\t.\tTARGET_CHROM={};TARGET_POS={};CHAIN_ID={};STRAND={}",
-                    one_chain.query_chromosome.name,
+                    one_chain.new_chromosome.name,
                     query_vcf_pos,
                     one_chain.chain_id,
-                    one_chain.query_strand
+                    one_chain.new_strand
                 )?;
 
                 // Write Query VCF
                 write!(
                     query_vcf_writer,
                     "{}\t{}\t.\t",
-                    one_chain.query_chromosome.name, query_vcf_pos,
+                    one_chain.new_chromosome.name, query_vcf_pos,
                 )?;
-                let query_vcf_ref = match one_chain.query_strand {
+                let query_vcf_ref = match one_chain.new_strand {
                     Strand::Forward => query_sequence_data,
                     Strand::Reverse => reverse_complement(&query_sequence_data),
                 };
                 query_vcf_writer.write_all(&query_vcf_ref)?;
                 query_vcf_writer.write_all(b"\t")?;
-                let query_vcf_alt = match one_chain.query_strand {
+                let query_vcf_alt = match one_chain.new_strand {
                     Strand::Forward => reference_sequence_data,
                     Strand::Reverse => reverse_complement(&reference_sequence_data),
                 };
@@ -538,10 +538,10 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
                 writeln!(
                     query_vcf_writer,
                     "\t.\t.\tTARGET_CHROM={};TARGET_POS={};CHAIN_ID={};STRAND={}",
-                    one_chain.reference_chromosome.name,
+                    one_chain.original_chromosome.name,
                     reference_current + 1,
                     one_chain.chain_id,
-                    one_chain.query_strand
+                    one_chain.new_strand
                 )?;
             }
         }
