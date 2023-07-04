@@ -91,123 +91,14 @@ pub struct LiftVcf {
         help = "Do not prefer same name contig when a variant lifted into multiple positions. (When you use this option, a variant which lifted into a main chromosome and alternative contigs, lift over will be failed if multimap is not allowed)"
     )]
     do_not_prefer_cis_contig_when_multimap: bool,
+    #[arg(
+        long = "ignore-fasta-length-mismatch",
+        help = "Ignore length mismatch between chain and fasta file"
+    )]
+    ignore_fasta_length_mismatch: bool,
 }
 
 impl LiftVcf {
-    // fn command_name(&self) -> &'static str {
-    //     "liftvcf"
-    // }
-    // fn config_subcommand(&self, app: App<'static, 'static>) -> App<'static, 'static> {
-    //     app.about("LiftOver VCF file")
-    //     .arg(
-    //         Arg::with_name("reference_sequence")
-    //             .long("original-assembly")
-    //             .alias("reference")
-    //             .short("r")
-    //             .takes_value(true)
-    //             .required(true)
-    //             .help("Original assembly FASTA (.fai file is required)"),
-    //     )
-    //     .arg(
-    //         Arg::with_name("query_sequence")
-    //             .long("new-assembly")
-    //             .alias("query")
-    //             .short("q")
-    //             .takes_value(true)
-    //             .required(true)
-    //             .help("New assembly FASTA (.fai file is required)"),
-    //     )
-    //     .arg(
-    //         Arg::with_name("chain")
-    //             .long("chain")
-    //             .short("c")
-    //             .takes_value(true)
-    //             .required(true)
-    //             .help("chain file"),
-    //     )
-    //     .arg(
-    //         Arg::with_name("vcf")
-    //             .long("vcf")
-    //             .short("f")
-    //             .takes_value(true)
-    //             .required(true)
-    //             .help("input VCF file to liftOver"),
-    //     )
-    //     .arg(
-    //         Arg::with_name("output")
-    //             .long("output")
-    //             .short("o")
-    //             .takes_value(true)
-    //             .required(true)
-    //             .help("output VCF file for succeeded to liftOver records (This file is not sorted)"),
-    //     )
-    //     .arg(
-    //         Arg::with_name("fail")
-    //             .long("fail")
-    //             .short("a")
-    //             .takes_value(true)
-    //             .required(true)
-    //             .help("output VCF file for failed to liftOver records"),
-    //     ).arg(
-    //         Arg::with_name("allow-multimap")
-    //             .long("allow-multi-map")
-    //             .short("m")
-    //             .help("Allow multi-map")
-    //     ).arg(
-    //         Arg::with_name("acceptable-deletion")
-    //             .long("acceptable-deletion")
-    //             .short("d")
-    //             .default_value("3")
-    //             .takes_value(true)
-    //             .validator(validate_integer)
-    //             .help("length of acceptable deletion")
-    //     ).arg(
-    //         Arg::with_name("acceptable-insertion")
-    //             .long("acceptable-insertion")
-    //             .short("i")
-    //             .default_value("3")
-    //             .takes_value(true)
-    //             .validator(validate_integer)
-    //             .help("length of acceptable insertion")
-    //     ).arg(
-    //         Arg::with_name("do-not-rewrite-info")
-    //             .long("no-rewrite-info")
-    //             .help("Do not rewrite order of INFO tags")
-    //     ).arg(
-    //         Arg::with_name("do-not-rewrite-format")
-    //             .long("no-rewrite-format")
-    //             .help("Do not rewrite order of FORMAT tags")
-    //     ).arg(
-    //         Arg::with_name("do-not-rewrite-gt")
-    //             .long("no-rewrite-gt")
-    //             .help("Do not rewrite order of GT")
-    //     ).arg(
-    //         Arg::with_name("do-not-rewrite-allele-frequency")
-    //             .long("no-rewrite-allele-frequency")
-    //             .help("Do not rewrite AF or other allele frequency info")
-    //     ).arg(
-    //         Arg::with_name("do-not-rewrite-allele-count")
-    //             .long("no-rewrite-allele-count")
-    //             .help("Do not rewrite AC or other count frequency info")
-    //     ).arg(
-    //         Arg::with_name("do-not-swap-ref-alt")
-    //             .long("noswap")
-    //             .help("Do not swap ref/alt when reference allele is changed. This option is suitable to do liftOver clinVar, COSMIC annotations")
-    //     ).arg(
-    //         Arg::with_name("do-not-left-align-chain")
-    //             .long("no-left-align-chain")
-    //             .help("Do not run left align chain file")
-    //     ).arg(
-    //         Arg::with_name("do_not_use_dot_when_alt_equal_to_ref")
-    //             .long("do-not-use-dot-when-alt-equal-to-ref")
-    //             .help("Do not use dot as ALT when ALT column is equal to REF")
-    //     ).arg(
-    //         Arg::with_name("do_not_prefer_cis_contig_when_multimap")
-    //             .long("do-not-prefer-same-contig-when-multimap")
-    //             .help("Do not prefer same name contig when a variant lifted into multiple positions. (When you use this option, a variant which lifted into a main chromosome and alternative contigs, lift over will be failed if multimap is not allowed)")
-    //     )
-    // }
-
     pub fn run(&self) -> anyhow::Result<()> {
         info!("start loading chain and fasta");
         let mut original_seq = IndexedReader::from_file(&self.reference_sequence)
@@ -221,8 +112,17 @@ impl LiftVcf {
         for one_chain in chain.chain_list.iter() {
             match one_chain.check_sequence_consistency(&mut original_seq, &mut new_seq) {
                 Ok(_) => (),
-                Err(LiftOverError::ChromosomeNotFound(_)) => (),
-                Err(e) => return Err(e.into()),
+                Err(e) => match e {
+                    LiftOverError::ChromosomeNotFound(_) => (),
+                    LiftOverError::UnmatchedChromosomeLength(_, _, _)
+                    | LiftOverError::QueryChromosomeLengthIsNotMatch(_)
+                    | LiftOverError::ReferenceChromosomeLengthIsNotMatch(_) => {
+                        if !self.ignore_fasta_length_mismatch {
+                            return Err(e.into());
+                        }
+                    }
+                    _ => return Err(e.into()),
+                },
             }
         }
 
