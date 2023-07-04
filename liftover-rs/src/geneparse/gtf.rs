@@ -2,7 +2,7 @@ use super::{Feature, FeatureType, Gene, GeneParseError, GeneStrand, GroupedReade
 use indexmap::IndexMap;
 use log::{error, trace};
 use nom::branch::alt;
-use nom::bytes::complete::{is_not, tag};
+use nom::bytes::complete::{is_not, tag, take_while};
 use nom::character::complete::line_ending;
 use nom::multi::separated_list0;
 use nom::sequence::{delimited, separated_pair};
@@ -300,7 +300,7 @@ impl FromStr for GtfRecord {
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         let (input, seq_id) = is_not(" \t\r\n")(input)?;
         let (input, _) = tag("\t")(input)?;
-        let (input, source) = is_not(" \t\r\n")(input)?;
+        let (input, source) = is_not("\t\r\n")(input)?;
         let (input, _) = tag("\t")(input)?;
         let (input, record_type) = is_not(" \t\r\n")(input)?;
         let (input, _) = tag("\t")(input)?;
@@ -320,12 +320,12 @@ impl FromStr for GtfRecord {
                 is_not(" \t\r\n\";"),
                 tag(" "),
                 alt((
-                    delimited(tag("\""), is_not("\""), tag("\"")),
+                    delimited(tag("\""), take_while(|x| x != '"'), tag("\"")),
                     is_not(" \t\r\n\";"),
                 )),
             ),
         )(input)?;
-        let (input, _) = tag(";")(input)?;
+        let (input, _) = alt((tag("; "), tag(";")))(input)?;
         line_ending(input)?;
 
         Ok(GtfRecord {
@@ -374,6 +374,32 @@ mod test {
 
     static CHEK2_CDS4_LINE: &str = r#"chr22	HAVANA	CDS	28699838	28699937	.	-	1	gene_id "ENSG00000183765.22"; transcript_id "ENST00000404276.6"; gene_type "protein_coding"; gene_name "CHEK2"; transcript_type "protein_coding"; transcript_name "CHEK2-207"; exon_number 9; exon_id "ENSE00003694540.1"; level 2; protein_id "ENSP00000385747.1"; transcript_support_level "1"; hgnc_id "HGNC:16627"; tag "CAGE_supported_TSS"; tag "basic"; tag "MANE_Select"; tag "appris_principal_3"; tag "CCDS"; ccdsid "CCDS13843.1"; havana_gene "OTTHUMG00000151023.24"; havana_transcript "OTTHUMT00000500899.1";
 "#;
+    static REFSEQ_DDX11L1_GENE_LINE: &str = r#"chr1	BestRefSeq	gene	11874	14409	.	+	.	gene_id "DDX11L1"; transcript_id ""; db_xref "GeneID:100287102"; db_xref "HGNC:HGNC:37102"; description "DEAD/H-box helicase 11 like 1 (pseudogene)"; gbkey "Gene"; gene "DDX11L1"; gene_biotype "transcribed_pseudogene"; pseudo "true"; 
+"#;
+    static REFSEQ_OR4G4P_GENE_LINE: &str = r#"chr1	Curated Genomic	gene	52453	53396	.	+	.	gene_id "OR4G4P"; transcript_id ""; db_xref "GeneID:79504"; db_xref "HGNC:HGNC:14822"; description "olfactory receptor family 4 subfamily G member 4 pseudogene"; gbkey "Gene"; gene "OR4G4P"; gene_biotype "pseudogene"; pseudo "true"; 
+"#;
+
+    static REFSEQ_DDX11L1_GENE: Lazy<GtfRecord> = Lazy::new(|| GtfRecord {
+        seq_id: "chr1".to_string(),
+        source: "BestRefSeq".to_string(),
+        feature_type: FeatureType::Gene,
+        record_type: "gene".to_string(),
+        start: 11874,
+        end: 14409,
+        score: ".".to_string(),
+        strand: GeneStrand::Forward,
+        phase: None,
+        attributes: indexmap! {
+            "gene_id".to_string() => vec!["DDX11L1".to_string()],
+            "transcript_id".to_string() => vec!["".to_string()],
+            "db_xref".to_string() => vec![ "GeneID:100287102".to_string(), "HGNC:HGNC:37102".to_string()],
+            "description".to_string() => vec!["DEAD/H-box helicase 11 like 1 (pseudogene)".to_string()],
+            "gbkey".to_string() => vec!["Gene".to_string()],
+            "gene".to_string() => vec!["DDX11L1".to_string()],
+            "gene_biotype".to_string() =>  vec!["transcribed_pseudogene".to_string()],
+            "pseudo".to_string() => vec!["true".to_string()],
+        },
+    });
 
     lazy_static! {
         static ref CHEK2P4_GENE: GtfRecord = GtfRecord {
@@ -435,6 +461,13 @@ mod test {
         );
 
         assert_eq!(CHEK2_CDS4_LINE.parse::<GtfRecord>().unwrap(), *CHEK2_CDS4);
+
+        assert_eq!(
+            REFSEQ_DDX11L1_GENE_LINE.parse::<GtfRecord>().unwrap(),
+            *REFSEQ_DDX11L1_GENE
+        );
+
+        REFSEQ_OR4G4P_GENE_LINE.parse::<GtfRecord>().unwrap();
     }
 
     #[allow(clippy::unreadable_literal)]
