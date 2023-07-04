@@ -543,6 +543,7 @@ impl<G: GenomeSequence> VCFLiftOver<G> {
             && (self.param.do_not_rewrite_allele_count || lifted_header.1.allele_count.is_empty());
         let mut last_position = 0;
 
+        let mut warn_chrom = HashSet::new();
         let mut succeeded_records = 0;
         let mut failed_records = 0;
         while let Some(original_record) = vcf_reader.next_record()? {
@@ -553,19 +554,28 @@ impl<G: GenomeSequence> VCFLiftOver<G> {
             }
             last_position = original_record.position;
 
-            let lifted_record = self.lift_record(&original_record, &lifted_header.1)?;
+            let lifted_record = self.lift_record(&original_record, &lifted_header.1);
 
             match lifted_record {
-                VCFLiftOverResult::Succeeded(succeeded) => {
+                Ok(VCFLiftOverResult::Succeeded(succeeded)) => {
                     for one_success in succeeded {
                         success_vcf_writer.write_record(&one_success)?;
                     }
                     succeeded_records += 1;
                 }
-                VCFLiftOverResult::Failed(failed) => {
+                Ok(VCFLiftOverResult::Failed(failed)) => {
                     failed_vcf_writer.write_record(failed.as_ref())?;
                     failed_records += 1;
                 }
+                Err(e) => match e {
+                    LiftOverError::UnknownSequenceError(chrom, _) => {
+                        if !warn_chrom.contains(&chrom) {
+                            warn!("{} is not found in chain or FASTA", chrom);
+                            warn_chrom.insert(chrom);
+                        }
+                    }
+                    _ => return Err(e.into()),
+                },
             }
 
             if (succeeded_records + failed_records) % 1_000_000 == 0 {
