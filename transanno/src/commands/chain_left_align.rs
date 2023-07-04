@@ -29,47 +29,6 @@ pub struct ChainLeftAlign {
 }
 
 impl ChainLeftAlign {
-    // fn command_name(&self) -> &'static str {
-    //     "left-align"
-    // }
-
-    // fn config_subcommand(&self, app: App<'static, 'static>) -> App<'static, 'static> {
-    //     app.about("Left align and normalize chain file")
-    //         .arg(
-    //             Arg::with_name("original-chain")
-    //                 .index(1)
-    //                 .takes_value(true)
-    //                 .required(true)
-    //                 .help("Original chain file"),
-    //         )
-    //         .arg(
-    //             Arg::with_name("output")
-    //                 .long("output")
-    //                 .short("o")
-    //                 .takes_value(true)
-    //                 .required(true)
-    //                 .help("Output chain file"),
-    //         )
-    //         .arg(
-    //             Arg::with_name("reference_sequence")
-    //                 .alias("reference")
-    //                 .long("original")
-    //                 .short("r")
-    //                 .takes_value(true)
-    //                 .required(true)
-    //                 .help("Original assembly FASTA (.fai file is required)"),
-    //         )
-    //         .arg(
-    //             Arg::with_name("query_sequence")
-    //                 .alias("query")
-    //                 .long("new")
-    //                 .short("q")
-    //                 .takes_value(true)
-    //                 .required(true)
-    //                 .help("New assembly FASTA (.fai file is required)"),
-    //         )
-    // }
-
     pub fn run(&self) -> anyhow::Result<()> {
         info!("start loading chain");
         let chain_file = open(&self.original_chain).context("Cannot create input chain file")?;

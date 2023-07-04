@@ -42,51 +42,6 @@ pub struct LiftGene {
 }
 
 impl LiftGene {
-    // fn command_name(&self) -> &'static str {
-    //     "liftgene"
-    // }
-    // fn config_subcommand(&self, app: App<'static, 'static>) -> App<'static, 'static> {
-    //     app.about("Lift GENCODE or Ensemble GFF3/GTF file")
-    //         .arg(
-    //             Arg::with_name("chain")
-    //                 .long("chain")
-    //                 .short("c")
-    //                 .required(true)
-    //                 .takes_value(true)
-    //                 .help("chain file"),
-    //         )
-    //         .arg(
-    //             Arg::with_name("gff")
-    //                 .index(1)
-    //                 .required(true)
-    //                 .takes_value(true)
-    //                 .help("input GFF3/GTF file (GENCODE/Ensemble)"),
-    //         )
-    //         .arg(
-    //             Arg::with_name("format")
-    //                 .long("format")
-    //                 .possible_values(&["auto", "GFF3", "GTF"])
-    //                 .takes_value(true)
-    //                 .default_value("auto")
-    //                 .help("Input file format"),
-    //         )
-    //         .arg(
-    //             Arg::with_name("output")
-    //                 .long("output")
-    //                 .short("o")
-    //                 .required(true)
-    //                 .takes_value(true)
-    //                 .help("GFF3/GTF output path (unsorted)"),
-    //         )
-    //         .arg(
-    //             Arg::with_name("failed")
-    //                 .long("failed")
-    //                 .short("f")
-    //                 .required(true)
-    //                 .takes_value(true)
-    //                 .help("Failed to liftOver GFF3/GTF output path"),
-    //         )
-    // }
     pub fn run(&self) -> anyhow::Result<()> {
         lift_gene_helper(
             &self.chain,
@@ -98,17 +53,6 @@ impl LiftGene {
         Ok(())
     }
 }
-
-// pub fn lift_gene(matches: &ArgMatches) {
-//     lift_gene_helper(
-//         matches.value_of("chain").unwrap(),
-//         matches.value_of("gff").unwrap(),
-//         matches.value_of("format").unwrap(),
-//         matches.value_of("output").unwrap(),
-//         matches.value_of("failed").unwrap(),
-//     )
-//     .expect("Failed to lift gene");
-// }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum Format {

@@ -374,7 +374,7 @@ impl<G: GenomeSequence> VCFLiftOver<G> {
         let mut chromosomes = self
             .variant_lift
             .position_liftover()
-            .query_chromosomes()
+            .new_chromosomes()
             .to_vec();
         chromosomes.sort_by_key(|x| (chromosome_priority(&x.name), x.length));
         for one_chromosome in chromosomes {
@@ -411,7 +411,7 @@ impl<G: GenomeSequence> VCFLiftOver<G> {
         if self
             .variant_lift
             .position_liftover()
-            .reference_chromosome_by_name(str::from_utf8(record.contig()).unwrap())
+            .original_chromosome_by_name(str::from_utf8(record.contig()).unwrap())
             .is_none()
             && !original_variant.chromosome.starts_with("chr")
         {
@@ -419,7 +419,7 @@ impl<G: GenomeSequence> VCFLiftOver<G> {
             if self
                 .variant_lift
                 .position_liftover()
-                .reference_chromosome_by_name(&chr_added_name)
+                .original_chromosome_by_name(&chr_added_name)
                 .is_some()
             {
                 original_variant.chromosome = chr_added_name;
@@ -602,7 +602,7 @@ impl<G: GenomeSequence> VCFLiftOver<G> {
                     if let Some(known_chromosome) = self
                         .variant_lift
                         .position_liftover()
-                        .reference_chromosome_by_name(str::from_utf8(id).unwrap())
+                        .original_chromosome_by_name(str::from_utf8(id).unwrap())
                     {
                         if length != known_chromosome.length {
                             return Err(LiftOverError::ReferenceChromosomeLengthIsNotMatch(

@@ -5,25 +5,25 @@ use crate::LiftOverError;
 #[test]
 fn test_target_region() {
     let value = TargetRegion {
-        reference_chromosome_index: 1,
-        query_chromosome_index: 1,
+        original_chromosome_index: 1,
+        new_chromosome_index: 1,
         chain_index: 1,
-        reference_start: 10,
-        reference_end: 20,
-        query_start: 30,
-        query_end: 40,
+        original_start: 10,
+        original_end: 20,
+        new_start: 30,
+        new_end: 40,
         strand: Strand::Forward,
         is_in_gap: true,
     };
-    assert_eq!(value.contains_reference_position(9), false);
-    assert_eq!(value.contains_reference_position(10), true);
-    assert_eq!(value.contains_reference_position(19), true);
-    assert_eq!(value.contains_reference_position(20), false);
+    assert_eq!(value.contains_original_position(9), false);
+    assert_eq!(value.contains_original_position(10), true);
+    assert_eq!(value.contains_original_position(19), true);
+    assert_eq!(value.contains_original_position(20), false);
 
-    assert_eq!(value.contains_query_position(29), false);
-    assert_eq!(value.contains_query_position(30), true);
-    assert_eq!(value.contains_query_position(39), true);
-    assert_eq!(value.contains_query_position(40), false);
+    assert_eq!(value.contains_new_position(29), false);
+    assert_eq!(value.contains_new_position(30), true);
+    assert_eq!(value.contains_new_position(39), true);
+    assert_eq!(value.contains_new_position(40), false);
 
     assert_eq!(value.is_indel(), false);
 }
@@ -31,26 +31,26 @@ fn test_target_region() {
 #[test]
 fn test_target_region2() {
     let value = TargetRegion {
-        reference_chromosome_index: 1,
-        query_chromosome_index: 1,
+        original_chromosome_index: 1,
+        new_chromosome_index: 1,
         chain_index: 1,
-        reference_start: 10,
-        reference_end: 20,
-        query_start: 30,
-        query_end: 50,
+        original_start: 10,
+        original_end: 20,
+        new_start: 30,
+        new_end: 50,
         strand: Strand::Forward,
         is_in_gap: true,
     };
-    assert_eq!(value.contains_reference_position(9), false);
-    assert_eq!(value.contains_reference_position(10), true);
-    assert_eq!(value.contains_reference_position(19), true);
-    assert_eq!(value.contains_reference_position(20), false);
+    assert_eq!(value.contains_original_position(9), false);
+    assert_eq!(value.contains_original_position(10), true);
+    assert_eq!(value.contains_original_position(19), true);
+    assert_eq!(value.contains_original_position(20), false);
 
-    assert_eq!(value.contains_query_position(29), false);
-    assert_eq!(value.contains_query_position(30), true);
-    assert_eq!(value.contains_query_position(40), true);
-    assert_eq!(value.contains_query_position(39), true);
-    assert_eq!(value.contains_query_position(50), false);
+    assert_eq!(value.contains_new_position(29), false);
+    assert_eq!(value.contains_new_position(30), true);
+    assert_eq!(value.contains_new_position(40), true);
+    assert_eq!(value.contains_new_position(39), true);
+    assert_eq!(value.contains_new_position(50), false);
 
     assert_eq!(value.is_indel(), true);
 }

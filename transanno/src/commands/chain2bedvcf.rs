@@ -64,81 +64,6 @@ pub struct Chain2BedVcf {
 }
 
 impl Chain2BedVcf {
-    // fn command_name(&self) -> &'static str {
-    //     "chain-to-bed-vcf"
-    // }
-    // fn config_subcommand(&self, app: App<'static, 'static>) -> App<'static, 'static> {
-    //     app.about("Create BED and VCF file from chain file")
-    //     .arg(
-    //         Arg::with_name("chain")
-    //             .index(1)
-    //             .takes_value(true)
-    //             .required(true)
-    //             .help("Input Chain file")
-    //     )
-    //     .arg(
-    //         Arg::with_name("reference-bed")
-    //             .long("output-original-bed")
-    //             .alias("output-reference-bed")
-    //             .short("b")
-    //             .takes_value(true)
-    //             .required(true)
-    //             .help("Output original assembly BED file (Not sorted)")
-    //     )
-    //     .arg(
-    //         Arg::with_name("query-bed")
-    //             .long("output-new-bed")
-    //             .alias("output-query-bed")
-    //             .short("d")
-    //             .takes_value(true)
-    //             .required(true)
-    //             .help("Output new assembly BED file (Not sorted)")
-    //     )
-    //     .arg(
-    //         Arg::with_name("reference-vcf")
-    //             .long("output-original-vcf")
-    //             .alias("output-reference-vcf")
-    //             .short("v")
-    //             .takes_value(true)
-    //             .required(true)
-    //             .help("Output original assembly VCF file (Not sorted)")
-    //     )
-    //     .arg(
-    //         Arg::with_name("query-vcf")
-    //             .long("output-new-vcf")
-    //             .alias("output-query-vcf")
-    //             .short("c")
-    //             .takes_value(true)
-    //             .required(true)
-    //             .help("Output new assembly VCF file (Not sorted)")
-    //     )
-    //     .arg(
-    //         Arg::with_name("reference-sequence")
-    //             .long("original")
-    //             .alias("reference")
-    //             .short("r")
-    //             .takes_value(true)
-    //             .required(true)
-    //             .help("Original assembly FASTA (.fai file is required)"),
-    //     )
-    //     .arg(
-    //         Arg::with_name("query-sequence")
-    //             .long("new")
-    //             .alias("query")
-    //             .short("q")
-    //             .takes_value(true)
-    //             .required(true)
-    //             .help("New assembly FASTA (.fai file is required)"),
-    //     ).arg(
-    //         Arg::with_name("svlen")
-    //             .long("svlen")
-    //             .short("s")
-    //             .takes_value(true)
-    //             .default_value("50")
-    //             .validator(validate_integer)
-    //             .help("Do not write nucleotides if a length of reference or alternative sequence is longer than svlen [default: 50]"),
-    //     )
-    // }
     pub fn run(&self) -> anyhow::Result<()> {
         chain_to_bed_vcf_helper(
             &self.chain,
@@ -153,20 +78,6 @@ impl Chain2BedVcf {
         Ok(())
     }
 }
-
-// pub fn chain_to_bed_vcf(matches: &ArgMatches) {
-//     chain_to_bed_vcf_helper(
-//         matches.value_of("chain").unwrap(),
-//         matches.value_of("reference-sequence").unwrap(),
-//         matches.value_of("query-sequence").unwrap(),
-//         matches.value_of("reference-vcf").unwrap(),
-//         matches.value_of("query-vcf").unwrap(),
-//         matches.value_of("reference-bed").unwrap(),
-//         matches.value_of("query-bed").unwrap(),
-//         matches.value_of("svlen").unwrap().parse().unwrap(),
-//     )
-//     .expect("failed to create BED and VCF");
-// }
 
 #[allow(clippy::too_many_arguments)]
 fn chain_to_bed_vcf_helper(
@@ -392,8 +303,8 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
         query_current = query_next;
 
         // process gap
-        let reference_next = reference_current + one_interval.difference_reference.unwrap_or(0);
-        let query_next = query_current + one_interval.difference_query.unwrap_or(0);
+        let reference_next = reference_current + one_interval.difference_original.unwrap_or(0);
+        let query_next = query_current + one_interval.difference_new.unwrap_or(0);
         if (reference_next == reference_current) || (query_next == query_current) {
             reference_current -= 1;
             query_current -= 1;

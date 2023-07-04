@@ -85,7 +85,7 @@ impl<G: GenomeSequence> VariantLiftOver<G> {
         // check reference sequence name
         if self
             .lift_position
-            .reference_chromosome_by_name(&variant.chromosome)
+            .original_chromosome_by_name(&variant.chromosome)
             .is_none()
         {
             return Ok(vec![Err(error::VariantLiftOverError::UnknownSequenceName(
@@ -127,14 +127,14 @@ impl<G: GenomeSequence> VariantLiftOver<G> {
             let consider_start = one_target_list
                 .iter()
                 .filter(|x| x.is_in_gap)
-                .map(|x| x.reference_start)
+                .map(|x| x.original_start)
                 .chain(vec![start].into_iter())
                 .min()
                 .unwrap();
             let consider_end = one_target_list
                 .iter()
                 .filter(|x| x.is_in_gap)
-                .map(|x| x.reference_end + 1)
+                .map(|x| x.original_end + 1)
                 .chain(vec![end].into_iter())
                 .max()
                 .unwrap();
@@ -156,14 +156,14 @@ impl<G: GenomeSequence> VariantLiftOver<G> {
 
             let is_acceptable_deletion = |x: &TargetRegion| {
                 if x.is_in_gap {
-                    x.reference_len() <= acceptable_deletion + variant.reference.len() as u64
+                    x.original_len() <= acceptable_deletion + variant.reference.len() as u64
                 } else {
                     true
                 }
             };
             let is_acceptable_insertion = |x: &TargetRegion| {
                 if x.is_in_gap {
-                    x.query_len() <= acceptable_insertion + largest_alternative as u64
+                    x.new_len() <= acceptable_insertion + largest_alternative as u64
                 } else {
                     true
                 }

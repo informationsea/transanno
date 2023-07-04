@@ -58,15 +58,14 @@ enum LiftOverReadStatus {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ChainInterval {
     pub size: u64,
-    pub difference_reference: Option<u64>,
-    pub difference_query: Option<u64>,
+    pub difference_original: Option<u64>,
+    pub difference_new: Option<u64>,
 }
 
 impl ChainInterval {
     pub fn is_valid(&self) -> bool {
         self.size != 0
-            && (self.difference_query.unwrap_or(0) != 0
-                || self.difference_reference.unwrap_or(0) != 0)
+            && (self.difference_new.unwrap_or(0) != 0 || self.difference_original.unwrap_or(0) != 0)
     }
 }
 
@@ -93,23 +92,23 @@ impl Chain {
 
         chain_interval.iter().fold(Vec::new(), |mut acc, x| {
             if let Some(last) = acc.pop() {
-                if last.difference_query.unwrap_or(0) == 0
-                    && last.difference_reference.unwrap_or(0) == 0
+                if last.difference_new.unwrap_or(0) == 0
+                    && last.difference_original.unwrap_or(0) == 0
                 {
                     acc.push(ChainInterval {
                         size: last.size + x.size,
-                        difference_query: x.difference_query,
-                        difference_reference: x.difference_reference,
+                        difference_new: x.difference_new,
+                        difference_original: x.difference_original,
                     });
                 } else if x.size == 0 {
                     acc.push(ChainInterval {
                         size: last.size,
-                        difference_query: Some(
-                            last.difference_query.unwrap_or(0) + x.difference_query.unwrap_or(0),
+                        difference_new: Some(
+                            last.difference_new.unwrap_or(0) + x.difference_new.unwrap_or(0),
                         ),
-                        difference_reference: Some(
-                            last.difference_reference.unwrap_or(0)
-                                + x.difference_reference.unwrap_or(0),
+                        difference_original: Some(
+                            last.difference_original.unwrap_or(0)
+                                + x.difference_original.unwrap_or(0),
                         ),
                     });
                 } else {
@@ -125,11 +124,11 @@ impl Chain {
 
     pub fn check_sequence_consistency<G1: GenomeSequence, G2: GenomeSequence>(
         &self,
-        reference: &mut G1,
-        query: &mut G2,
+        original_sequence: &mut G1,
+        new_sequence: &mut G2,
     ) -> Result<(), LiftOverError> {
         // Check chromosome length
-        if let Some(expected_len) = reference
+        if let Some(expected_len) = original_sequence
             .get_contig_list()
             .iter()
             .filter(|x| x.0 == self.original_chromosome.name)
@@ -138,13 +137,13 @@ impl Chain {
         {
             if expected_len != self.original_chromosome.length {
                 error!(
-                    "Length of {} in chain file is {}, but {} in reference FASTA is {}",
+                    "Length of {} in chain file is {}, but {} in original FASTA is {}",
                     self.original_chromosome.name,
                     self.original_chromosome.length,
                     self.original_chromosome.name,
                     expected_len
                 );
-                return Err(LiftOverError::UnmatchedReferenceChromosomeLength(
+                return Err(LiftOverError::UnmatchedOriginalChromosomeLength(
                     self.original_chromosome.name.to_string(),
                     self.original_chromosome.length,
                     expected_len,
@@ -152,7 +151,7 @@ impl Chain {
             }
         } else {
             warn!(
-                "Chromosome {} is not found in reference FASTA",
+                "Chromosome {} is not found in original FASTA",
                 self.original_chromosome.name
             );
             return Err(LiftOverError::ChromosomeNotFound(
@@ -160,7 +159,7 @@ impl Chain {
             ));
         }
 
-        if let Some(expected_len) = query
+        if let Some(expected_len) = new_sequence
             .get_contig_list()
             .iter()
             .filter(|x| x.0 == self.new_chromosome.name)
@@ -169,14 +168,14 @@ impl Chain {
         {
             if expected_len != self.new_chromosome.length {
                 error!(
-                    "Length of {} in chain file is {}, but {} in query FASTA is {}",
+                    "Length of {} in chain file is {}, but {} in new FASTA is {}",
                     self.new_chromosome.name,
                     self.new_chromosome.length,
                     self.new_chromosome.name,
                     expected_len
                 );
 
-                return Err(LiftOverError::UnmatchedQueryChromosomeLength(
+                return Err(LiftOverError::UnmatchedNewChromosomeLength(
                     self.original_chromosome.name.to_string(),
                     self.original_chromosome.length,
                     expected_len,
@@ -184,7 +183,7 @@ impl Chain {
             }
         } else {
             warn!(
-                "Chromosome {} is not found in query FASTA",
+                "Chromosome {} is not found in new FASTA",
                 self.new_chromosome.name
             );
             return Err(LiftOverError::ChromosomeNotFound(
@@ -196,18 +195,18 @@ impl Chain {
 
     pub fn left_align<G: GenomeSequence>(
         &self,
-        reference: &mut G,
-        query: &mut G,
+        original_sequence: &mut G,
+        new_sequence: &mut G,
     ) -> Result<Chain, LiftOverError> {
         if self.original_strand == Strand::Reverse {
-            return Err(LiftOverError::ReferenceStrandShouldForward);
+            return Err(LiftOverError::OriginalStrandShouldForward);
         }
-        self.check_sequence_consistency(reference, query)?;
+        self.check_sequence_consistency(original_sequence, new_sequence)?;
 
         let mut new_intervals = Vec::new();
 
-        let mut current_reference = self.original_start;
-        let mut current_query = self.new_start;
+        let mut current_original = self.original_start;
+        let mut current_new = self.new_start;
         let mut remain_size = 0;
 
         for (i, one_interval) in self.chain_interval.iter().enumerate() {
@@ -218,77 +217,77 @@ impl Chain {
                 one_interval,
                 self.chain_id
             );
-            if one_interval.difference_query.unwrap_or(0) == 1
-                && one_interval.difference_reference.unwrap_or(0) == 1
+            if one_interval.difference_new.unwrap_or(0) == 1
+                && one_interval.difference_original.unwrap_or(0) == 1
             {
                 // println!("concatenate {} {}", one_interval.size, remain_size);
                 remain_size += one_interval.size + 1;
                 continue;
             }
 
-            let next_reference = current_reference + one_interval.size + remain_size;
-            let next_query = current_query + one_interval.size + remain_size;
+            let next_original = current_original + one_interval.size + remain_size;
+            let next_new = current_new + one_interval.size + remain_size;
             trace!(
                 "next reference: {}:{} - {} {} {}",
                 &self.original_chromosome.name,
-                next_reference,
-                current_reference,
+                next_original,
+                current_original,
                 one_interval.size,
                 remain_size
             );
 
-            let reference_seq = reference.get_sequence(
+            let original_seq = original_sequence.get_sequence(
                 &self.original_chromosome.name,
-                next_reference,
-                next_reference + one_interval.difference_reference.unwrap_or(0),
+                next_original,
+                next_original + one_interval.difference_original.unwrap_or(0),
             )?;
 
             match self.new_strand {
                 Strand::Forward => {
                     trace!(
-                        "next query+: {}:{} - {} {} {}",
+                        "next new+: {}:{} - {} {} {}",
                         &self.new_chromosome.name,
-                        next_query,
-                        next_query + one_interval.difference_query.unwrap_or(0),
+                        next_new,
+                        next_new + one_interval.difference_new.unwrap_or(0),
                         one_interval.size,
                         remain_size
                     );
                 }
                 Strand::Reverse => {
                     trace!(
-                        "next query-: {}:{} - {} {} {}",
+                        "next new-: {}:{} - {} {} {}",
                         &self.new_chromosome.name,
                         self.new_chromosome.length
-                            - (next_query + one_interval.difference_query.unwrap_or(0)),
-                        self.new_chromosome.length - next_query,
+                            - (next_new + one_interval.difference_new.unwrap_or(0)),
+                        self.new_chromosome.length - next_new,
                         one_interval.size,
                         remain_size
                     );
                 }
             };
 
-            let query_seq = match self.new_strand {
-                Strand::Forward => query.get_sequence(
+            let new_seq = match self.new_strand {
+                Strand::Forward => new_sequence.get_sequence(
                     &self.new_chromosome.name,
-                    next_query,
-                    next_query + one_interval.difference_query.unwrap_or(0),
+                    next_new,
+                    next_new + one_interval.difference_new.unwrap_or(0),
                 )?,
-                Strand::Reverse => reverse_complement(&query.get_sequence(
+                Strand::Reverse => reverse_complement(&new_sequence.get_sequence(
                     &self.new_chromosome.name,
                     self.new_chromosome.length
-                        - (next_query + one_interval.difference_query.unwrap_or(0)),
-                    self.new_chromosome.length - next_query,
+                        - (next_new + one_interval.difference_new.unwrap_or(0)),
+                    self.new_chromosome.length - next_new,
                 )?),
             };
-            trace!("query seq ok");
+            trace!("new seq ok");
 
-            let do_not_normalize = query_seq.contains(&b'N') || reference_seq.contains(&b'N');
+            let do_not_normalize = new_seq.contains(&b'N') || original_seq.contains(&b'N');
 
             let variant = Variant {
                 chromosome: self.original_chromosome.name.to_string(),
-                position: next_reference,
-                reference: reference_seq,
-                alternative: vec![query_seq],
+                position: next_original,
+                reference: original_seq,
+                alternative: vec![new_seq],
             };
             //println!("before normalization variant: {:?}", variant);
 
@@ -296,13 +295,13 @@ impl Chain {
                 variant
             } else {
                 variant
-                    .normalize(reference)?
+                    .normalize(original_sequence)?
                     .truncate_left_most_nucleotide_if_allele_starts_with_same()
             };
             //println!(" after normalization variant: {:?}", normalized);
 
-            let offset = if next_reference > normalized.position {
-                next_reference - normalized.position
+            let offset = if next_original > normalized.position {
+                next_original - normalized.position
             } else {
                 0
             };
@@ -310,25 +309,25 @@ impl Chain {
             let mut offset_updated = if offset == 0 {
                 0
             } else {
-                trace!("offset fetch: {}/{}/{}", next_reference, next_query, offset);
-                let offset_reference_seq = reference.get_sequence(
+                trace!("offset fetch: {}/{}/{}", next_original, next_new, offset);
+                let offset_original_seq = original_sequence.get_sequence(
                     &self.original_chromosome.name,
-                    next_reference - offset,
-                    next_reference,
+                    next_original - offset,
+                    next_original,
                 )?;
                 let offset_query_seq = match self.new_strand {
-                    Strand::Forward => query.get_sequence(
+                    Strand::Forward => new_sequence.get_sequence(
                         &self.new_chromosome.name,
-                        next_query - offset,
-                        next_query,
+                        next_new - offset,
+                        next_new,
                     )?,
-                    Strand::Reverse => reverse_complement(&query.get_sequence(
+                    Strand::Reverse => reverse_complement(&new_sequence.get_sequence(
                         &self.new_chromosome.name,
-                        self.new_chromosome.length - next_query,
-                        self.new_chromosome.length - (next_query - offset),
+                        self.new_chromosome.length - next_new,
+                        self.new_chromosome.length - (next_new - offset),
                     )?),
                 };
-                if offset_reference_seq == offset_query_seq {
+                if offset_original_seq == offset_query_seq {
                     offset
                 } else {
                     0
@@ -348,26 +347,26 @@ impl Chain {
 
             let one_new_interval = ChainInterval {
                 size: one_interval.size + remain_size - offset_updated,
-                difference_reference: one_interval
-                    .difference_reference
+                difference_original: one_interval
+                    .difference_original
                     .map(|_| normalized.reference.len() as u64),
-                difference_query: one_interval
-                    .difference_query
+                difference_new: one_interval
+                    .difference_new
                     .map(|_| normalized.alternative[0].len() as u64),
             };
 
-            let original_current_reference = current_reference
+            let original_current_original = current_original
                 + one_interval.size
-                + one_interval.difference_reference.unwrap_or(0)
+                + one_interval.difference_original.unwrap_or(0)
                 + remain_size;
-            current_reference +=
-                one_new_interval.size + one_new_interval.difference_reference.unwrap_or(0);
-            current_query += one_new_interval.size + one_new_interval.difference_query.unwrap_or(0);
+            current_original +=
+                one_new_interval.size + one_new_interval.difference_original.unwrap_or(0);
+            current_new += one_new_interval.size + one_new_interval.difference_new.unwrap_or(0);
             // println!(
             //     "original: {}  / current: {}",
             //     original_current_reference, current_reference
             // );
-            remain_size = original_current_reference - current_reference;
+            remain_size = original_current_original - current_original;
             new_intervals.push(one_new_interval);
         }
 
@@ -533,15 +532,15 @@ impl ChainFile {
                             .chain_interval
                             .push(ChainInterval {
                                 size: elements[0].parse()?,
-                                difference_reference: Some(elements[1].parse()?),
-                                difference_query: Some(elements[2].parse()?),
+                                difference_original: Some(elements[1].parse()?),
+                                difference_new: Some(elements[2].parse()?),
                             });
                     } else if elements.len() == 1 {
                         if let Some(mut current_chain) = current_chain.take() {
                             current_chain.chain_interval.push(ChainInterval {
                                 size: elements[0].parse()?,
-                                difference_reference: None,
-                                difference_query: None,
+                                difference_original: None,
+                                difference_new: None,
                             });
 
                             // last entry
@@ -623,14 +622,14 @@ impl ChainFile {
                 one_chain.chain_id
             )?;
             for one_interval in one_chain.chain_interval.iter() {
-                if let (Some(diff_ref), Some(diff_query)) = (
-                    one_interval.difference_reference,
-                    one_interval.difference_query,
+                if let (Some(diff_original), Some(diff_new)) = (
+                    one_interval.difference_original,
+                    one_interval.difference_new,
                 ) {
                     writeln!(
                         writer,
                         "{}\t{}\t{}",
-                        one_interval.size, diff_ref, diff_query
+                        one_interval.size, diff_original, diff_new
                     )?;
                 } else {
                     writeln!(writer, "{}", one_interval.size)?;

@@ -23,53 +23,12 @@ pub struct Minimap2Chain {
 }
 
 impl Minimap2Chain {
-    //     fn command_name(&self) -> &'static str {
-    //         "minimap2chain"
-    //     }
-    //     fn config_subcommand(&self, app: App<'static, 'static>) -> App<'static, 'static> {
-    //         app.about("Convert minimap2 result to chain file")
-    //             .long_about(
-    //                 r#"Convert minimap2 result to chain file
-
-    // A paf file should be created with a command shown in below.
-
-    // $ minimap2 -cx asm5 --cs NEW_FASTA ORIGINAL_FASTA > PAF_FILE.paf
-    // "#,
-    //             )
-    //             .arg(
-    //                 Arg::with_name("paf")
-    //                     .index(1)
-    //                     .takes_value(true)
-    //                     .required(true)
-    //                     .help("Input paf file"),
-    //             )
-    //             .arg(
-    //                 Arg::with_name("chain")
-    //                     .long("output")
-    //                     .short("o")
-    //                     .takes_value(true)
-    //                     .required(true)
-    //                     .help("Output chain file"),
-    //             )
-    //     }
     pub fn run(&self) -> anyhow::Result<()> {
         minimap2_to_chain_helper(&self.paf, &self.output)?;
 
         Ok(())
     }
 }
-
-// pub fn minimap2_to_chain(matches: &ArgMatches) {
-//     match minimap2_to_chain_helper(
-//         matches.value_of("paf").unwrap(),
-//         matches.value_of("chain").unwrap(),
-//     ) {
-//         Ok(_) => (),
-//         Err(e) => {
-//             eprintln!("Error: {}", e);
-//         }
-//     }
-// }
 
 fn minimap2_to_chain_helper(paf_path: &str, chain_path: &str) -> anyhow::Result<()> {
     let mut paf_file = io::BufReader::new(open(paf_path).context("Cannot open paf file")?);

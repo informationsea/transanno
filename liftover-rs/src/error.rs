@@ -23,9 +23,9 @@ pub enum LiftOverError {
     #[error("Unmatched chromosome length: {0} / chain file: {1} / FASTA: {2}")]
     UnmatchedChromosomeLength(String, u64, u64),
     #[error("Unmatched chromosome length: {0} / chain file: {1} / Reference FASTA: {2}")]
-    UnmatchedReferenceChromosomeLength(String, u64, u64),
+    UnmatchedOriginalChromosomeLength(String, u64, u64),
     #[error("Unmatched chromosome length: {0} / chain file: {1} / Query FASTA: {2}")]
-    UnmatchedQueryChromosomeLength(String, u64, u64),
+    UnmatchedNewChromosomeLength(String, u64, u64),
     #[error("Invalid number of columns at line {0}")]
     InvalidNumberOfColumns(u32),
     #[error("Reference sequence is different from expected sequence")]
@@ -35,7 +35,7 @@ pub enum LiftOverError {
     #[error("Parse strand error")]
     ParseStrandError,
     #[error("stand for reference should be forward")]
-    ReferenceStrandShouldForward,
+    OriginalStrandShouldForward,
     #[error(
         "length of chromosome {0} is not equal to length in chain file. Are you using correct reference?",
     )]

@@ -23,53 +23,53 @@ fn test_load() -> Result<(), LiftOverError> {
             chain_interval: vec![
                 ChainInterval {
                     size: 1058,
-                    difference_reference: Some(0),
-                    difference_query: Some(1),
+                    difference_original: Some(0),
+                    difference_new: Some(1),
                 },
                 ChainInterval {
                     size: 260,
-                    difference_reference: Some(0),
-                    difference_query: Some(5),
+                    difference_original: Some(0),
+                    difference_new: Some(5),
                 },
                 ChainInterval {
                     size: 384,
-                    difference_reference: Some(0),
-                    difference_query: Some(2),
+                    difference_original: Some(0),
+                    difference_new: Some(2),
                 },
                 ChainInterval {
                     size: 95,
-                    difference_reference: Some(3),
-                    difference_query: Some(0),
+                    difference_original: Some(3),
+                    difference_new: Some(0),
                 },
                 ChainInterval {
                     size: 28,
-                    difference_reference: Some(0),
-                    difference_query: Some(1),
+                    difference_original: Some(0),
+                    difference_new: Some(1),
                 },
                 ChainInterval {
                     size: 1595,
-                    difference_reference: Some(0),
-                    difference_query: Some(7),
+                    difference_original: Some(0),
+                    difference_new: Some(7),
                 },
                 ChainInterval {
                     size: 259,
-                    difference_reference: Some(5),
-                    difference_query: Some(0),
+                    difference_original: Some(5),
+                    difference_new: Some(0),
                 },
                 ChainInterval {
                     size: 140,
-                    difference_reference: Some(1),
-                    difference_query: Some(0),
+                    difference_original: Some(1),
+                    difference_new: Some(0),
                 },
                 ChainInterval {
                     size: 5,
-                    difference_reference: Some(1),
-                    difference_query: Some(0),
+                    difference_original: Some(1),
+                    difference_new: Some(0),
                 },
                 ChainInterval {
                     size: 698,
-                    difference_reference: None,
-                    difference_query: None,
+                    difference_original: None,
+                    difference_new: None,
                 }
             ],
             score: 4900,
@@ -115,13 +115,13 @@ fn test_normalize_chain_file() -> anyhow::Result<()> {
         vec![
             ChainInterval {
                 size: 3,
-                difference_reference: Some(2),
-                difference_query: Some(0),
+                difference_original: Some(2),
+                difference_new: Some(0),
             },
             ChainInterval {
                 size: 2,
-                difference_reference: None,
-                difference_query: None,
+                difference_original: None,
+                difference_new: None,
             }
         ]
     );
@@ -131,13 +131,13 @@ fn test_normalize_chain_file() -> anyhow::Result<()> {
         vec![
             ChainInterval {
                 size: 2,
-                difference_reference: Some(0),
-                difference_query: Some(3),
+                difference_original: Some(0),
+                difference_new: Some(3),
             },
             ChainInterval {
                 size: 5,
-                difference_reference: None,
-                difference_query: None,
+                difference_original: None,
+                difference_new: None,
             }
         ]
     );
@@ -147,13 +147,13 @@ fn test_normalize_chain_file() -> anyhow::Result<()> {
         vec![
             ChainInterval {
                 size: 2,
-                difference_reference: Some(0),
-                difference_query: Some(3),
+                difference_original: Some(0),
+                difference_new: Some(3),
             },
             ChainInterval {
                 size: 5,
-                difference_reference: None,
-                difference_query: None,
+                difference_original: None,
+                difference_new: None,
             }
         ]
     );
@@ -166,8 +166,8 @@ fn test_chain_interval_valid() {
     assert_eq!(
         ChainInterval {
             size: 0,
-            difference_reference: Some(10),
-            difference_query: Some(0),
+            difference_original: Some(10),
+            difference_new: Some(0),
         }
         .is_valid(),
         false
@@ -176,8 +176,8 @@ fn test_chain_interval_valid() {
     assert_eq!(
         ChainInterval {
             size: 10,
-            difference_reference: Some(0),
-            difference_query: Some(0),
+            difference_original: Some(0),
+            difference_new: Some(0),
         }
         .is_valid(),
         false
@@ -186,8 +186,8 @@ fn test_chain_interval_valid() {
     assert_eq!(
         ChainInterval {
             size: 10,
-            difference_reference: Some(10),
-            difference_query: Some(0),
+            difference_original: Some(10),
+            difference_new: Some(0),
         }
         .is_valid(),
         true
@@ -196,8 +196,8 @@ fn test_chain_interval_valid() {
     assert_eq!(
         ChainInterval {
             size: 10,
-            difference_reference: Some(0),
-            difference_query: Some(10),
+            difference_original: Some(0),
+            difference_new: Some(10),
         }
         .is_valid(),
         true
@@ -206,8 +206,8 @@ fn test_chain_interval_valid() {
     assert_eq!(
         ChainInterval {
             size: 10,
-            difference_reference: Some(10),
-            difference_query: Some(10),
+            difference_original: Some(10),
+            difference_new: Some(10),
         }
         .is_valid(),
         true
@@ -219,23 +219,23 @@ fn test_chain_cleanup_no_change() {
     let chain_intervals = vec![
         ChainInterval {
             size: 10,
-            difference_reference: Some(5),
-            difference_query: Some(0),
+            difference_original: Some(5),
+            difference_new: Some(0),
         },
         ChainInterval {
             size: 10,
-            difference_reference: Some(5),
-            difference_query: Some(10),
+            difference_original: Some(5),
+            difference_new: Some(10),
         },
         ChainInterval {
             size: 10,
-            difference_reference: Some(0),
-            difference_query: Some(5),
+            difference_original: Some(0),
+            difference_new: Some(5),
         },
         ChainInterval {
             size: 10,
-            difference_reference: Some(5),
-            difference_query: Some(0),
+            difference_original: Some(5),
+            difference_new: Some(0),
         },
     ];
     let cleanup_chain = Chain::cleanup(&chain_intervals);
@@ -248,23 +248,23 @@ fn test_chain_cleanup_with_change() {
     let chain_intervals = vec![
         ChainInterval {
             size: 4,
-            difference_reference: Some(5),
-            difference_query: Some(0),
+            difference_original: Some(5),
+            difference_new: Some(0),
         },
         ChainInterval {
             size: 0,
-            difference_reference: Some(5),
-            difference_query: Some(13),
+            difference_original: Some(5),
+            difference_new: Some(13),
         },
         ChainInterval {
             size: 17,
-            difference_reference: Some(0),
-            difference_query: Some(0),
+            difference_original: Some(0),
+            difference_new: Some(0),
         },
         ChainInterval {
             size: 19,
-            difference_reference: Some(8),
-            difference_query: Some(0),
+            difference_original: Some(8),
+            difference_new: Some(0),
         },
     ];
     let cleanup_chain = Chain::cleanup(&chain_intervals);
@@ -273,13 +273,13 @@ fn test_chain_cleanup_with_change() {
         vec![
             ChainInterval {
                 size: 4,
-                difference_reference: Some(10),
-                difference_query: Some(13),
+                difference_original: Some(10),
+                difference_new: Some(13),
             },
             ChainInterval {
                 size: 36,
-                difference_reference: Some(8),
-                difference_query: Some(0),
+                difference_original: Some(8),
+                difference_new: Some(0),
             },
         ],
         cleanup_chain
