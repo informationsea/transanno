@@ -645,7 +645,7 @@ checksum = "f7012b1bbb0719e1097c47611d3898568c546d597c2e74d66f6087edd5233ff4"
 
 [[package]]
 name = "liftover"
-version = "0.2.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "autocompress",
@@ -1209,7 +1209,7 @@ dependencies = [
 
 [[package]]
 name = "transanno"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "anyhow",
  "autocompress",
