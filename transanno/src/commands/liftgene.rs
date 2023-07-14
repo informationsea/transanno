@@ -24,12 +24,7 @@ pub struct LiftGene {
     chain: String,
     #[arg(help = "input GFF3/GTF file (GENCODE/Ensemble)")]
     gff: String,
-    #[arg(
-        long = "format",
-        short = 'f',
-        default_value = "auto",
-        help = "Input file format"
-    )]
+    #[arg(long = "format", default_value = "auto", help = "Input file format")]
     format: ArgFormat,
     #[arg(long = "output", short = 'o', help = "GFF3/GTF output path (unsorted)")]
     output: String,

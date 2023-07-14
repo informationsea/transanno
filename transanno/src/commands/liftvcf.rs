@@ -50,7 +50,7 @@ pub struct LiftVcf {
     #[arg(
         help = "length of acceptable insertion",
         long = "acceptable-insertion",
-        short = 'd',
+        short = 'i',
         default_value = "3"
     )]
     acceptable_insertion: u64,
