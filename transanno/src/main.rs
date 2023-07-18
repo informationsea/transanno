@@ -1,4 +1,3 @@
-mod cli;
 pub mod commands;
 
 use clap::Parser;
@@ -31,4 +30,38 @@ fn main() -> anyhow::Result<()> {
     pretty_env_logger::init();
 
     app.command.run()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_clap1() {
+        let _cli = Cli::parse_from(&["transanno", "--help"]);
+    }
+
+    #[test]
+    fn test_clap_liftvcf() {
+        let _cli = Cli::parse_from(&["transanno", "liftvcf", "--help"]);
+    }
+
+    #[test]
+    fn test_clap_liftgene() {
+        let _cli = Cli::parse_from(&["transanno", "liftgene", "--help"]);
+    }
+
+    #[test]
+    fn test_clap_left_align() {
+        let _cli = Cli::parse_from(&["transanno", "left-align", "--help"]);
+    }
+
+    #[test]
+    fn test_clap_minimap2chain() {
+        let _cli = Cli::parse_from(&["transanno", "minimap2chain", "--help"]);
+    }
+
+    #[test]
+    fn test_clap_chain_to_bed_vcf() {
+        let _cli = Cli::parse_from(&["transanno", "chain-to-bed-vcf", "--help"]);
+    }
 }
