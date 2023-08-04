@@ -1,3 +1,4 @@
+pub mod bedparse;
 pub mod chain;
 mod defs;
 mod error;

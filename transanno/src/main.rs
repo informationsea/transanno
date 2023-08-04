@@ -64,4 +64,9 @@ mod tests {
     fn test_clap_chain_to_bed_vcf() {
         let _cli = Cli::parse_from(&["transanno", "chain-to-bed-vcf", "--help"]);
     }
+
+    #[test]
+    fn test_clap_liftbed() {
+        let _cli = Cli::parse_from(&["transanno", "liftbed", "--help"]);
+    }
 }

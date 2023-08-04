@@ -2,6 +2,7 @@ mod chain2bedvcf;
 // mod chain2chunkbed;
 mod chain_left_align;
 // mod generate_completions;
+mod liftbed;
 mod liftgene;
 mod liftvcf;
 mod minimap2chain;
@@ -13,6 +14,7 @@ pub enum Commands {
     Liftgene(liftgene::LiftGene),
     Minimap2chain(minimap2chain::Minimap2Chain),
     Liftvcf(liftvcf::LiftVcf),
+    Liftbed(liftbed::LiftBed),
 }
 
 impl Commands {
@@ -23,6 +25,7 @@ impl Commands {
             Commands::Liftgene(x) => x.run(),
             Commands::Minimap2chain(x) => x.run(),
             Commands::Liftvcf(x) => x.run(),
+            Commands::Liftbed(x) => x.run(),
         }
     }
 }

@@ -12,6 +12,8 @@ pub enum LiftOverError {
     Utf8IoError(#[from] std::str::Utf8Error),
     #[error("VCF parse error")]
     VCFParseError(#[from] crate::vcfparse::VCFParseError),
+    #[error("BED parse error")]
+    BEDParseError(String),
     #[error("Invalid number of header at line {0}")]
     InvalidNumberOfHeader(u32),
     #[error("Invalid header at line {0}. A header line should starts with \"chain\"")]
