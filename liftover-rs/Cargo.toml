@@ -13,7 +13,7 @@ test_all = []
 bio = { version = "1", features = ["runtime-dispatch-simd"] }
 regex = "1"
 once_cell = "1"
-indexmap = "1"
+indexmap = "2"
 csv = "1"
 log = "0.4"
 nom = "7"
