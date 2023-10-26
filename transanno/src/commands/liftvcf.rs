@@ -1,5 +1,5 @@
+use crate::utils::{create, open};
 use anyhow::Context;
-use autocompress::{create, open, CompressionLevel};
 use bio::io::fasta::IndexedReader;
 use clap::Args;
 use liftover::{chain, variantlift, vcflift, LiftOverError};
@@ -105,7 +105,7 @@ impl LiftVcf {
             .context("Failed to load original assembly FASTA")?;
         let mut new_seq = IndexedReader::from_file(&self.new_sequence)
             .context("Failed to load new assembly FASTA")?;
-        let chain = chain::ChainFile::load(autocompress::open(&self.chain)?)?
+        let chain = chain::ChainFile::load(open(&self.chain)?)?
             .left_align(&mut original_seq, &mut new_seq)
             .context("Failed to load chain file")?;
         // Reference/Query sequence and chain consistency
@@ -148,10 +148,9 @@ impl LiftVcf {
         info!("chain file and fasta files were loaded");
 
         let uncompressed_reader = open(&self.vcf).expect("Cannot open input VCF");
-        let success_writer =
-            create(&self.output, CompressionLevel::Default).expect("Cannot create output VCF");
-        let failed_writer = create(&self.fail, CompressionLevel::Default)
-            .expect("Cannot create output VCF for failed records");
+        let success_writer = create(&self.output).expect("Cannot create output VCF");
+        let failed_writer =
+            create(&self.fail).expect("Cannot create output VCF for failed records");
         vcf_lift.lift_vcf(uncompressed_reader, success_writer, failed_writer)?;
         Ok(())
     }

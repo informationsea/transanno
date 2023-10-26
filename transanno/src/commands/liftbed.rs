@@ -1,5 +1,5 @@
+use crate::utils::{create, open};
 use anyhow::Context;
-use autocompress::{create, open, CompressionLevel};
 use clap::Args;
 use liftover::{bedparse::parse_bed_line, chain::Strand, poslift::PositionLiftOver};
 use std::io::{self, prelude::*};
@@ -25,13 +25,11 @@ impl LiftBed {
             PositionLiftOver::load(open(&self.chain).context("Failed to open chain file")?)
                 .context("Failed parse chain file.")?;
         let mut writer = io::BufWriter::new(
-            create(&self.output, CompressionLevel::Default)
-                .with_context(|| format!("Failed to create {}", &self.output))?,
+            create(&self.output).with_context(|| format!("Failed to create {}", &self.output))?,
         );
         let mut failed_writer = if let Some(x) = &self.failed {
             Some(io::BufWriter::new(
-                create(x, CompressionLevel::Default)
-                    .with_context(|| format!("Failed to create {}", x))?,
+                create(x).with_context(|| format!("Failed to create {}", x))?,
             ))
         } else {
             None

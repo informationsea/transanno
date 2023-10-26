@@ -1,11 +1,11 @@
-use autocompress::{create, open, CompressionLevel};
+use crate::utils::{create, open};
 use bio::io::fasta::IndexedReader;
 use clap::Args;
 use liftover::chain::{Chain, Strand};
 use liftover::LiftOverError;
 use liftover::{reverse_acid, reverse_complement, GenomeSequence};
 use log::warn;
-use std::io::{self, Write};
+use std::io;
 
 #[derive(Debug, Clone, Args)]
 #[command(about = "Create BED and VCF file from chain file")]
@@ -98,15 +98,13 @@ fn chain_to_bed_vcf_helper(
         liftover::chain::ChainFile::load(open(chain_path).expect("Cannot open chain file"))
             .expect("Cannot parse chain file");
 
-    let mut query_vcf_writer =
-        create(query_vcf_path, CompressionLevel::Default).expect("Cannot create Query VCF file");
+    let mut query_vcf_writer = create(query_vcf_path).expect("Cannot create Query VCF file");
     write_vcf_header_for_sequence(&mut query_vcf_writer, &query_sequence, query_sequence_path)
         .expect("Cannot write query VCF");
-    let mut query_bed_writer =
-        create(query_bed_path, CompressionLevel::Default).expect("Cannot create Query BED file");
+    let mut query_bed_writer = create(query_bed_path).expect("Cannot create Query BED file");
 
-    let mut reference_vcf_writer = create(reference_vcf_path, CompressionLevel::Default)
-        .expect("Cannot create reference VCF file");
+    let mut reference_vcf_writer =
+        create(reference_vcf_path).expect("Cannot create reference VCF file");
     write_vcf_header_for_sequence(
         &mut reference_vcf_writer,
         &reference_sequence,
@@ -114,8 +112,8 @@ fn chain_to_bed_vcf_helper(
     )
     .expect("Cannot write reference VCF");
 
-    let mut reference_bed_writer = create(reference_bed_path, CompressionLevel::Default)
-        .expect("Cannot create reference BED file");
+    let mut reference_bed_writer =
+        create(reference_bed_path).expect("Cannot create reference BED file");
 
     for one_chain in chain_file.chain_list {
         // Check chromosome length

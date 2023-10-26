@@ -1,5 +1,5 @@
+use crate::utils::{create, open};
 use anyhow::Context;
-use autocompress::{create, open, CompressionLevel};
 use clap::Args;
 use liftover::genelift::GeneLiftOver;
 use liftover::geneparse::gff3::{Gff3GroupedReader, Gff3Reader};
@@ -66,14 +66,10 @@ fn lift_gene_helper(
     let chain_file = PositionLiftOver::load(open(chain_path).context("Failed to open chain file")?)
         .context("Failed parse chain file.")?;
     let gene_lift = GeneLiftOver::new(chain_file);
-    let mut writer = io::BufWriter::new(
-        create(output, CompressionLevel::Default)
-            .with_context(|| format!("Failed to create {}", output))?,
-    );
-    let mut failed_writer = io::BufWriter::new(
-        create(failed, CompressionLevel::Default)
-            .with_context(|| format!("Failed to create {}", failed))?,
-    );
+    let mut writer =
+        io::BufWriter::new(create(output).with_context(|| format!("Failed to create {}", output))?);
+    let mut failed_writer =
+        io::BufWriter::new(create(failed).with_context(|| format!("Failed to create {}", failed))?);
 
     let format = match format {
         ArgFormat::GFF3 => Format::GFF3,

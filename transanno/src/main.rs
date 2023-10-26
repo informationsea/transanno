@@ -1,4 +1,5 @@
 pub mod commands;
+mod utils;
 
 use clap::Parser;
 pub use liftover::LiftOverError;

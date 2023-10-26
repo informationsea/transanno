@@ -1,5 +1,5 @@
+use crate::utils::{create, open};
 use anyhow::Context;
-use autocompress::{create, open, CompressionLevel};
 use bio::io::fasta::IndexedReader;
 use clap::Args;
 use liftover::chain;
@@ -32,8 +32,7 @@ impl ChainLeftAlign {
     pub fn run(&self) -> anyhow::Result<()> {
         info!("start loading chain");
         let chain_file = open(&self.original_chain).context("Cannot create input chain file")?;
-        let mut output_file = create(&self.output, CompressionLevel::Default)
-            .context("Cannot create output chain file")?;
+        let mut output_file = create(&self.output).context("Cannot create output chain file")?;
         let mut original_seq = IndexedReader::from_file(&self.original_sequence)
             .context("Cannot load original assembly FASTA")?;
         let mut new_seq = IndexedReader::from_file(&self.new_sequence)

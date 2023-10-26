@@ -1,5 +1,5 @@
+use crate::utils::{create, open};
 use anyhow::Context;
-use autocompress::{create, open, CompressionLevel};
 use clap::Args;
 use once_cell::sync::Lazy;
 use regex::Regex;
@@ -32,8 +32,7 @@ impl Minimap2Chain {
 
 fn minimap2_to_chain_helper(paf_path: &str, chain_path: &str) -> anyhow::Result<()> {
     let mut paf_file = io::BufReader::new(open(paf_path).context("Cannot open paf file")?);
-    let mut chain_file =
-        create(chain_path, CompressionLevel::Default).context("Cannot create chain file")?;
+    let mut chain_file = create(chain_path).context("Cannot create chain file")?;
 
     let mut count = 0;
     loop {

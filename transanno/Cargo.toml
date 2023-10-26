@@ -16,7 +16,11 @@ csv = "1"
 clap = { version = "4", features = ["derive", "cargo"] }
 pretty_env_logger = "0.5"
 log = "0.4"
-autocompress = "0.2"
 liftover = { path = "../liftover-rs", version = "0.4.0" }
+bgzip = { version = "0.3.1", no_default_features = true, features = [
+    "libdeflater",
+    "rayon",
+    "log",
+] }
 
 [build-dependencies]
