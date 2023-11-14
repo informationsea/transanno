@@ -6,6 +6,7 @@ use liftover::LiftOverError;
 use liftover::{reverse_acid, reverse_complement, GenomeSequence};
 use log::warn;
 use std::io;
+use std::io::Write;
 
 #[derive(Debug, Clone, Args)]
 #[command(about = "Create BED and VCF file from chain file")]

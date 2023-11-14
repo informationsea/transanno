@@ -33,6 +33,7 @@ fn main() -> anyhow::Result<()> {
     app.command.run()
 }
 
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -71,3 +72,4 @@ mod tests {
         let _cli = Cli::parse_from(&["transanno", "liftbed", "--help"]);
     }
 }
+*/

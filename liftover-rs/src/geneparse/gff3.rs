@@ -434,31 +434,27 @@ mod test {
     }
 
     #[test]
-    fn test_gff3_reader() {
-        let test_data =
-            autocompress::Decoder::suggest(
-                &include_bytes!(
-                    "../../testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gff3.xz"
-                )[..],
-            )
-            .unwrap();
+    fn test_gff3_reader() -> anyhow::Result<()> {
+        let test_data = autocompress::autodetect_buf_reader(
+            &include_bytes!("../../testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gff3.zst")
+                [..],
+        )?;
         let test_reader = io::BufReader::new(test_data);
         let gff3_reader = Gff3Reader::new(test_reader);
         let values: Vec<_> = gff3_reader.map(|x| x.unwrap()).collect();
         assert_eq!(values[350], *CHEK2P4_GENE);
         assert_eq!(values[13123], *CHEK2_EXON12);
         assert_eq!(values.len(), 37856);
+        Ok(())
     }
 
     #[test]
     fn test_gff3_grouped_reader() {
-        let test_data =
-            autocompress::Decoder::suggest(
-                &include_bytes!(
-                    "../../testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gff3.xz"
-                )[..],
-            )
-            .unwrap();
+        let test_data = autocompress::autodetect_buf_reader(
+            &include_bytes!("../../testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gff3.zst")
+                [..],
+        )
+        .unwrap();
         let test_reader = io::BufReader::new(test_data);
         let gff3_reader = Gff3Reader::new(test_reader);
         let grouped_gff3_reader = Gff3GroupedReader::new(gff3_reader);

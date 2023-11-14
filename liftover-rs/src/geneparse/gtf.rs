@@ -480,9 +480,9 @@ mod test {
     #[test]
     fn test_gtf_reader() {
         let test_data =
-            autocompress::Decoder::suggest(
+            autocompress::autodetect_buf_reader(
                 &include_bytes!(
-                    "../../testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gtf.xz"
+                    "../../testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gtf.zst"
                 )[..],
             )
             .unwrap();
@@ -497,9 +497,9 @@ mod test {
     #[test]
     fn test_gtf_grouped_reader() {
         let test_data =
-            autocompress::Decoder::suggest(
+            autocompress::autodetect_buf_reader(
                 &include_bytes!(
-                    "../../testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gtf.xz"
+                    "../../testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gtf.zst"
                 )[..],
             )
             .unwrap();

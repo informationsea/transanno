@@ -1,6 +1,6 @@
 use super::*;
 use crate::poslift::PositionLiftOver;
-use autocompress::{create, open, CompressionLevel};
+use autocompress::CompressionLevel;
 use std::collections::HashMap;
 use std::fmt::{self, Display};
 use std::fs;
@@ -67,7 +67,9 @@ impl Feature for TestFeature {
 }
 
 fn load_hg38_to_hg19_lift() -> GeneLiftOver {
-    let hg38_to_hg19_chain = open("testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain").unwrap();
+    let hg38_to_hg19_chain =
+        autocompress::autodetect_open("testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain")
+            .unwrap();
     let region_lift = PositionLiftOver::load(hg38_to_hg19_chain).unwrap();
     GeneLiftOver::new(region_lift)
 }
@@ -611,15 +613,15 @@ use std::io::{BufReader, Write};
 #[test]
 fn test_gff3_real_check2() -> Result<(), FeatureLiftError> {
     let gff3_data =
-        &include_bytes!("../../testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gff3.xz")[..];
+        &include_bytes!("../../testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gff3.zst")[..];
     let gff3_genes = Gff3GroupedReader::new(Gff3Reader::new(BufReader::new(
-        autocompress::Decoder::suggest(gff3_data).unwrap(),
+        autocompress::autodetect_buf_reader(gff3_data).unwrap(),
     )));
     let gene_lift = load_hg38_to_hg19_lift();
 
     fs::create_dir_all("../target/test-output/gene").unwrap();
 
-    let mut writer = create(
+    let mut writer = autocompress::autodetect_create(
         "../target/test-output/gene/gencode.v30.basic.annotation.CHEK2-MCHR1-lifted.gff3",
         CompressionLevel::Default,
     )
@@ -658,12 +660,12 @@ fn test_gtf_real_check2() -> Result<(), FeatureLiftError> {
     fs::create_dir_all("../target/test-output/gene").unwrap();
 
     let gtf_data =
-        &include_bytes!("../../testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gtf.xz")[..];
+        &include_bytes!("../../testfiles/GENCODE/gencode.v33.basic.annotation.chr22.gtf.zst")[..];
     let gtf_genes = GtfGroupedReader::new(GtfReader::new(BufReader::new(
-        autocompress::Decoder::suggest(gtf_data).unwrap(),
+        autocompress::autodetect_buf_reader(gtf_data).unwrap(),
     )));
     let gene_lift = load_hg38_to_hg19_lift();
-    let mut writer = create(
+    let mut writer = autocompress::autodetect_create(
         "../target/test-output/gene/gencode.v31.annotation.CHEK2-MCHR1-lifted.gff3",
         CompressionLevel::Default,
     )
