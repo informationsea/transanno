@@ -5,8 +5,10 @@ use clap::Parser;
 pub use liftover::LiftOverError;
 use std::env;
 
+include!(concat!(env!("OUT_DIR"), "/git_version.rs"));
+
 #[derive(Debug, Clone, clap::Parser)]
-#[command(version, about = "Transfer annotation to other genome assemblies")]
+#[command(version = concat!(env!("CARGO_PKG_VERSION"), " git:", git_version!()), about = "Transfer annotation to other genome assemblies")]
 struct Cli {
     #[command(subcommand)]
     command: commands::Commands,

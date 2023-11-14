@@ -15,7 +15,13 @@ fn main() {
         .arg("HEAD")
         .output()
     {
-        Ok(output) => str::from_utf8(&output.stdout).unwrap().trim().to_string(),
+        Ok(output) => {
+            if output.stdout.is_empty() {
+                "unknown".to_string()
+            } else {
+                str::from_utf8(&output.stdout).unwrap().trim().to_string()
+            }
+        }
         Err(_err) => "unknown".to_string(),
     };
 
@@ -44,7 +50,7 @@ macro_rules! git_version {{
     () => ("{}{}")
 }}
 "#,
-        &git_revision[0..7],
+        &git_revision[..7],
         git_status
     )
     .unwrap();
