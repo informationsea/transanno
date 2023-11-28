@@ -367,7 +367,6 @@ impl FromStr for GtfRecord {
 mod test {
     use super::*;
     use indexmap::indexmap;
-    use lazy_static::lazy_static;
 
     static CHEK2P4_GENE_LINE: &str = r#"chr22	HAVANA	gene	16503304	16509475	.	+	.	gene_id "ENSG00000235969.1"; gene_type "unprocessed_pseudogene"; gene_name "CHEK2P4"; level 2; hgnc_id "HGNC:43580"; havana_gene "OTTHUMG00000140400.1";
 "#;
@@ -401,56 +400,54 @@ mod test {
         },
     });
 
-    lazy_static! {
-        static ref CHEK2P4_GENE: GtfRecord = GtfRecord {
-            seq_id: "chr22".to_string(),
-            source: "HAVANA".to_string(),
-            feature_type: FeatureType::Gene,
-            record_type: "gene".to_string(),
-            start: 16503304,
-            end: 16509475,
-            score: ".".to_string(),
-            strand: GeneStrand::Forward,
-            phase: None,
-            attributes: indexmap! {
-                "gene_id".to_string() => vec!["ENSG00000235969.1".to_string()],
-                "gene_type".to_string() => vec!["unprocessed_pseudogene".to_string()],
-                "gene_name".to_string() => vec!["CHEK2P4".to_string()],
-                "level".to_string() => vec!["2".to_string()],
-                "hgnc_id".to_string() => vec!["HGNC:43580".to_string()],
-                "havana_gene".to_string() => vec!["OTTHUMG00000140400.1".to_string()],
-            },
-        };
-        static ref CHEK2_CDS4: GtfRecord = GtfRecord {
-            seq_id: "chr22".to_string(),
-            source: "HAVANA".to_string(),
-            feature_type: FeatureType::CDS,
-            record_type: "CDS".to_string(),
-            start: 28699838,
-            end: 28699937,
-            score: ".".to_string(),
-            strand: GeneStrand::Reverse,
-            phase: Some(1),
-            attributes: indexmap! {
-                "gene_id".to_string() => vec!["ENSG00000183765.22".to_string()],
-                "transcript_id".to_string() => vec!["ENST00000404276.6".to_string()],
-                "gene_type".to_string() => vec!["protein_coding".to_string()],
-                "gene_name".to_string() => vec!["CHEK2".to_string()],
-                "transcript_type".to_string() => vec!["protein_coding".to_string()],
-                "transcript_name".to_string() => vec!["CHEK2-207".to_string()],
-                "exon_number".to_string() => vec!["9".to_string()],
-                "exon_id".to_string() => vec!["ENSE00003694540.1".to_string()],
-                "level".to_string() => vec!["2".to_string()],
-                "protein_id".to_string() => vec!["ENSP00000385747.1".to_string()],
-                "transcript_support_level".to_string() => vec!["1".to_string()],
-                "hgnc_id".to_string() => vec!["HGNC:16627".to_string()],
-                "tag".to_string() => vec!["CAGE_supported_TSS".to_string(), "basic".to_string(), "MANE_Select".to_string(), "appris_principal_3".to_string(), "CCDS".to_string()],
-                "ccdsid".to_string() => vec!["CCDS13843.1".to_string()],
-                "havana_gene".to_string() => vec!["OTTHUMG00000151023.24".to_string()],
-                "havana_transcript".to_string() => vec!["OTTHUMT00000500899.1".to_string()],
-            },
-        };
-    }
+    const CHEK2P4_GENE: Lazy<GtfRecord> = Lazy::new(|| GtfRecord {
+        seq_id: "chr22".to_string(),
+        source: "HAVANA".to_string(),
+        feature_type: FeatureType::Gene,
+        record_type: "gene".to_string(),
+        start: 16503304,
+        end: 16509475,
+        score: ".".to_string(),
+        strand: GeneStrand::Forward,
+        phase: None,
+        attributes: indexmap! {
+            "gene_id".to_string() => vec!["ENSG00000235969.1".to_string()],
+            "gene_type".to_string() => vec!["unprocessed_pseudogene".to_string()],
+            "gene_name".to_string() => vec!["CHEK2P4".to_string()],
+            "level".to_string() => vec!["2".to_string()],
+            "hgnc_id".to_string() => vec!["HGNC:43580".to_string()],
+            "havana_gene".to_string() => vec!["OTTHUMG00000140400.1".to_string()],
+        },
+    });
+    const CHEK2_CDS4: Lazy<GtfRecord> = Lazy::new(|| GtfRecord {
+        seq_id: "chr22".to_string(),
+        source: "HAVANA".to_string(),
+        feature_type: FeatureType::CDS,
+        record_type: "CDS".to_string(),
+        start: 28699838,
+        end: 28699937,
+        score: ".".to_string(),
+        strand: GeneStrand::Reverse,
+        phase: Some(1),
+        attributes: indexmap! {
+            "gene_id".to_string() => vec!["ENSG00000183765.22".to_string()],
+            "transcript_id".to_string() => vec!["ENST00000404276.6".to_string()],
+            "gene_type".to_string() => vec!["protein_coding".to_string()],
+            "gene_name".to_string() => vec!["CHEK2".to_string()],
+            "transcript_type".to_string() => vec!["protein_coding".to_string()],
+            "transcript_name".to_string() => vec!["CHEK2-207".to_string()],
+            "exon_number".to_string() => vec!["9".to_string()],
+            "exon_id".to_string() => vec!["ENSE00003694540.1".to_string()],
+            "level".to_string() => vec!["2".to_string()],
+            "protein_id".to_string() => vec!["ENSP00000385747.1".to_string()],
+            "transcript_support_level".to_string() => vec!["1".to_string()],
+            "hgnc_id".to_string() => vec!["HGNC:16627".to_string()],
+            "tag".to_string() => vec!["CAGE_supported_TSS".to_string(), "basic".to_string(), "MANE_Select".to_string(), "appris_principal_3".to_string(), "CCDS".to_string()],
+            "ccdsid".to_string() => vec!["CCDS13843.1".to_string()],
+            "havana_gene".to_string() => vec!["OTTHUMG00000151023.24".to_string()],
+            "havana_transcript".to_string() => vec!["OTTHUMT00000500899.1".to_string()],
+        },
+    });
 
     #[allow(clippy::unreadable_literal)]
     #[test]

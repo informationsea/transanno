@@ -352,61 +352,59 @@ impl FromStr for Gff3Record {
 mod test {
     use super::*;
     use indexmap::indexmap;
-    use lazy_static::lazy_static;
+    use once_cell::sync::Lazy;
 
-    lazy_static! {
-        static ref CHEK2P4_GENE: Gff3Record = Gff3Record {
-            seq_id: "chr22".to_string(),
-            source: "HAVANA".to_string(),
-            feature_type: FeatureType::Gene,
-            record_type: "gene".to_string(),
-            start: 16503304,
-            end: 16509475,
-            score: ".".to_string(),
-            strand: GeneStrand::Forward,
-            phase: None,
-            attributes: indexmap! {
-                "ID".to_string() => "ENSG00000235969.1".to_string(),
-                "gene_id".to_string() => "ENSG00000235969.1".to_string(),
-                "gene_type".to_string() => "unprocessed_pseudogene".to_string(),
-                "gene_name".to_string() => "CHEK2P4".to_string(),
-                "level".to_string() => "2".to_string(),
-                "hgnc_id".to_string() => "HGNC:43580".to_string(),
-                "havana_gene".to_string() => "OTTHUMG00000140400.1".to_string(),
-            },
-        };
-        static ref CHEK2_EXON12: Gff3Record = Gff3Record {
-            seq_id: "chr22".to_string(),
-            source: "HAVANA".to_string(),
-            feature_type: FeatureType::CDS,
-            record_type: "CDS".to_string(),
-            start: 28695710,
-            end: 28695873,
-            score: ".".to_string(),
-            strand: GeneStrand::Reverse,
-            phase: Some(0),
-            attributes: indexmap! {
-                "ID".to_string() => "CDS:ENST00000382580.6".to_string(),
-                "Parent".to_string() => "ENST00000382580.6".to_string(),
-                "gene_id".to_string() => "ENSG00000183765.22".to_string(),
-                "transcript_id".to_string() => "ENST00000382580.6".to_string(),
-                "gene_type".to_string() => "protein_coding".to_string(),
-                "gene_name".to_string() => "CHEK2".to_string(),
-                "transcript_type".to_string() => "protein_coding".to_string(),
-                "transcript_name".to_string() => "CHEK2-203".to_string(),
-                "exon_number".to_string() => "12".to_string(),
-                "exon_id".to_string() => "ENSE00003559542.1".to_string(),
-                "level".to_string() => "2".to_string(),
-                "protein_id".to_string() => "ENSP00000372023.2".to_string(),
-                "transcript_support_level".to_string() => "1".to_string(),
-                "hgnc_id".to_string() => "HGNC:16627".to_string(),
-                "tag".to_string() => "basic,appris_alternative_2,CCDS".to_string(),
-                "ccdsid".to_string() => "CCDS33629.1".to_string(),
-                "havana_gene".to_string() => "OTTHUMG00000151023.24".to_string(),
-                "havana_transcript".to_string() => "OTTHUMT00000321016.2".to_string(),
-            },
-        };
-    }
+    const CHEK2P4_GENE: Lazy<Gff3Record> = Lazy::new(|| Gff3Record {
+        seq_id: "chr22".to_string(),
+        source: "HAVANA".to_string(),
+        feature_type: FeatureType::Gene,
+        record_type: "gene".to_string(),
+        start: 16503304,
+        end: 16509475,
+        score: ".".to_string(),
+        strand: GeneStrand::Forward,
+        phase: None,
+        attributes: indexmap! {
+            "ID".to_string() => "ENSG00000235969.1".to_string(),
+            "gene_id".to_string() => "ENSG00000235969.1".to_string(),
+            "gene_type".to_string() => "unprocessed_pseudogene".to_string(),
+            "gene_name".to_string() => "CHEK2P4".to_string(),
+            "level".to_string() => "2".to_string(),
+            "hgnc_id".to_string() => "HGNC:43580".to_string(),
+            "havana_gene".to_string() => "OTTHUMG00000140400.1".to_string(),
+        },
+    });
+    const CHEK2_EXON12: Lazy<Gff3Record> = Lazy::new(|| Gff3Record {
+        seq_id: "chr22".to_string(),
+        source: "HAVANA".to_string(),
+        feature_type: FeatureType::CDS,
+        record_type: "CDS".to_string(),
+        start: 28695710,
+        end: 28695873,
+        score: ".".to_string(),
+        strand: GeneStrand::Reverse,
+        phase: Some(0),
+        attributes: indexmap! {
+            "ID".to_string() => "CDS:ENST00000382580.6".to_string(),
+            "Parent".to_string() => "ENST00000382580.6".to_string(),
+            "gene_id".to_string() => "ENSG00000183765.22".to_string(),
+            "transcript_id".to_string() => "ENST00000382580.6".to_string(),
+            "gene_type".to_string() => "protein_coding".to_string(),
+            "gene_name".to_string() => "CHEK2".to_string(),
+            "transcript_type".to_string() => "protein_coding".to_string(),
+            "transcript_name".to_string() => "CHEK2-203".to_string(),
+            "exon_number".to_string() => "12".to_string(),
+            "exon_id".to_string() => "ENSE00003559542.1".to_string(),
+            "level".to_string() => "2".to_string(),
+            "protein_id".to_string() => "ENSP00000372023.2".to_string(),
+            "transcript_support_level".to_string() => "1".to_string(),
+            "hgnc_id".to_string() => "HGNC:16627".to_string(),
+            "tag".to_string() => "basic,appris_alternative_2,CCDS".to_string(),
+            "ccdsid".to_string() => "CCDS33629.1".to_string(),
+            "havana_gene".to_string() => "OTTHUMG00000151023.24".to_string(),
+            "havana_transcript".to_string() => "OTTHUMT00000321016.2".to_string(),
+        },
+    });
 
     const CHEK2P4_GENE_LINE: &str = "chr22\tHAVANA\tgene\t16503304\t16509475\t.\t+\t.\tID=ENSG00000235969.1;gene_id=ENSG00000235969.1;gene_type=unprocessed_pseudogene;gene_name=CHEK2P4;level=2;hgnc_id=HGNC:43580;havana_gene=OTTHUMG00000140400.1\n";
     const CHEK2_EXON12_LINE: &str = "chr22\tHAVANA\tCDS\t28695710\t28695873\t.\t-\t0\tID=CDS:ENST00000382580.6;Parent=ENST00000382580.6;gene_id=ENSG00000183765.22;transcript_id=ENST00000382580.6;gene_type=protein_coding;gene_name=CHEK2;transcript_type=protein_coding;transcript_name=CHEK2-203;exon_number=12;exon_id=ENSE00003559542.1;level=2;protein_id=ENSP00000372023.2;transcript_support_level=1;hgnc_id=HGNC:16627;tag=basic,appris_alternative_2,CCDS;ccdsid=CCDS33629.1;havana_gene=OTTHUMG00000151023.24;havana_transcript=OTTHUMT00000321016.2\n";
