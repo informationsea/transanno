@@ -654,3 +654,7 @@ impl ChainFile {
 
 #[cfg(test)]
 mod test;
+
+#[cfg(test)]
+#[cfg(feature = "test_all")]
+mod test2;

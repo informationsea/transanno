@@ -135,6 +135,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b64fd8980fb64af5951bc05de7772b598150a6f7eac42ec17f73e8489915f99b"
 dependencies = [
  "flate2",
+ "log",
+ "rayon",
  "thiserror",
 ]
 
@@ -1245,6 +1247,7 @@ version = "0.4.3"
 dependencies = [
  "anyhow",
  "autocompress",
+ "bgzip",
  "bio",
  "clap",
  "csv",

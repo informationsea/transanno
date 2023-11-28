@@ -14,10 +14,27 @@ function download() {
     fi
 }
 
+function uncompress() {
+    FILENAME="$1"
+    if [ ! -f "${FILENAME%.gz}" ]; then
+        gzip -dc "${FILENAME}" > "${FILENAME%.gz}"
+    fi
+}
+
 mkdir -p "${DOWNLOAD_DIR}"
 
 download https://hgdownload.soe.ucsc.edu/goldenPath/hg38/liftOver/hg38ToHg19.over.chain.gz
+download https://hgdownload.soe.ucsc.edu/goldenPath/hg38/liftOver/hg38ToMm10.over.chain.gz
+download https://hgdownload.soe.ucsc.edu/goldenPath/hg38/liftOver/hg38ToMm39.over.chain.gz
+download https://hgdownload.soe.ucsc.edu/goldenPath/hg38/liftOver/hg38ToHs1.over.chain.gz
+
 download https://hgdownload.soe.ucsc.edu/goldenPath/hg19/liftOver/hg19ToHg38.over.chain.gz
+download https://hgdownload.soe.ucsc.edu/goldenPath/hg19/liftOver/hg19ToMm10.over.chain.gz
+
+download https://hgdownload.soe.ucsc.edu/goldenPath/hs1/liftOver/hs1ToHg19.over.chain.gz
+download https://hgdownload.soe.ucsc.edu/goldenPath/hs1/liftOver/hs1ToHg38.over.chain.gz
+download https://hgdownload.soe.ucsc.edu/goldenPath/hs1/liftOver/hs1ToMm10.over.chain.gz
+download https://hgdownload.soe.ucsc.edu/goldenPath/hs1/liftOver/hs1ToMm39.over.chain.gz
 
 if [ "$(uname)" == 'Darwin' ]; then
     download http://hgdownload.soe.ucsc.edu/admin/exe/macOSX.x86_64/liftOver
@@ -26,19 +43,23 @@ else
 fi
 chmod +x "${DOWNLOAD_DIR}/liftOver"
 
+download https://hgdownload.soe.ucsc.edu/goldenPath/hs1/bigZips/hs1.fa.gz
 download https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz
 download https://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/hg19.fa.gz
+download https://hgdownload.soe.ucsc.edu/goldenPath/mm39/bigZips/mm39.fa.gz
+download https://hgdownload.soe.ucsc.edu/goldenPath/mm10/bigZips/mm10.fa.gz
 
-if [ ! -f "${DOWNLOAD_DIR}/hg19.fa" ]; then
-    gzip -dc "${DOWNLOAD_DIR}/hg19.fa.gz" > "${DOWNLOAD_DIR}/hg19.fa"
-fi
-
-if [ ! -f "${DOWNLOAD_DIR}/hg38.fa" ]; then
-    gzip -dc "${DOWNLOAD_DIR}/hg38.fa.gz" > "${DOWNLOAD_DIR}/hg38.fa"
-fi
+uncompress "${DOWNLOAD_DIR}/hs1.fa.gz"
+uncompress "${DOWNLOAD_DIR}/hg19.fa.gz"
+uncompress "${DOWNLOAD_DIR}/hg38.fa.gz"
+uncompress "${DOWNLOAD_DIR}/mm39.fa.gz"
+uncompress "${DOWNLOAD_DIR}/mm10.fa.gz"
 
 test ! -f "${DOWNLOAD_DIR}/hg19.fa.fai" && samtools faidx "${DOWNLOAD_DIR}/hg19.fa"
 test ! -f "${DOWNLOAD_DIR}/hg38.fa.fai" && samtools faidx "${DOWNLOAD_DIR}/hg38.fa"
+test ! -f "${DOWNLOAD_DIR}/mm39.fa.fai" && samtools faidx "${DOWNLOAD_DIR}/mm39.fa"
+test ! -f "${DOWNLOAD_DIR}/mm10.fa.fai" && samtools faidx "${DOWNLOAD_DIR}/mm10.fa"
+test ! -f "${DOWNLOAD_DIR}/hs1.fa.fai" && samtools faidx "${DOWNLOAD_DIR}/hs1.fa"
 test ! -f "${DOWNLOAD_DIR}/hg19-regions.bed" && python3 testfiles/ucsc-scripts/create-test-regions.py testfiles/ucsc/hg19.fa.fai --output testfiles/ucsc/hg19-regions.bed
 test ! -f "${DOWNLOAD_DIR}/hg38-regions.bed" && python3 testfiles/ucsc-scripts/create-test-regions.py testfiles/ucsc/hg38.fa.fai --output testfiles/ucsc/hg38-regions.bed
 

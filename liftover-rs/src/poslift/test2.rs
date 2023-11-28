@@ -53,11 +53,11 @@ fn test_ucsc_result(
         return Ok(());
     }
 
-    let lift_over = PositionLiftOver::load(autocompress::open(chain_path)?)?;
+    let lift_over = PositionLiftOver::load(autocompress::autodetect_open(chain_path)?)?;
 
     eprintln!("chain file loaded");
 
-    let mut jsonl_reader = BufReader::new(autocompress::open(mapped_jsonl_path)?);
+    let mut jsonl_reader = BufReader::new(autocompress::autodetect_open(mapped_jsonl_path)?);
     let mut result_bed_writer_succeeded = BufWriter::new(fs::File::create(output_succeeded_path)?);
     let mut result_bed_writer_failed = BufWriter::new(fs::File::create(output_failed_path)?);
 
