@@ -21,6 +21,12 @@ function uncompress() {
     fi
 }
 
+function faidx() {
+    if [ ! -f "${1}.fai" ]; then
+        samtools faidx "${1}"
+    fi
+}
+
 mkdir -p "${DOWNLOAD_DIR}"
 
 download https://hgdownload.soe.ucsc.edu/goldenPath/hg38/liftOver/hg38ToHg19.over.chain.gz
@@ -48,18 +54,24 @@ download https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz
 download https://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/hg19.fa.gz
 download https://hgdownload.soe.ucsc.edu/goldenPath/mm39/bigZips/mm39.fa.gz
 download https://hgdownload.soe.ucsc.edu/goldenPath/mm10/bigZips/mm10.fa.gz
+download https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/p14/hg38.p14.fa.gz
+download https://hgdownload.soe.ucsc.edu/goldenPath/hg19/bigZips/p13.plusMT/hg19.p13.plusMT.fa.gz
 
 uncompress "${DOWNLOAD_DIR}/hs1.fa.gz"
 uncompress "${DOWNLOAD_DIR}/hg19.fa.gz"
 uncompress "${DOWNLOAD_DIR}/hg38.fa.gz"
+uncompress "${DOWNLOAD_DIR}/hg38.p14.fa.gz"
+uncompress "${DOWNLOAD_DIR}/hg19.p13.plusMT.fa.gz"
 uncompress "${DOWNLOAD_DIR}/mm39.fa.gz"
 uncompress "${DOWNLOAD_DIR}/mm10.fa.gz"
 
-test ! -f "${DOWNLOAD_DIR}/hg19.fa.fai" && samtools faidx "${DOWNLOAD_DIR}/hg19.fa"
-test ! -f "${DOWNLOAD_DIR}/hg38.fa.fai" && samtools faidx "${DOWNLOAD_DIR}/hg38.fa"
-test ! -f "${DOWNLOAD_DIR}/mm39.fa.fai" && samtools faidx "${DOWNLOAD_DIR}/mm39.fa"
-test ! -f "${DOWNLOAD_DIR}/mm10.fa.fai" && samtools faidx "${DOWNLOAD_DIR}/mm10.fa"
-test ! -f "${DOWNLOAD_DIR}/hs1.fa.fai" && samtools faidx "${DOWNLOAD_DIR}/hs1.fa"
+faidx "${DOWNLOAD_DIR}/hg19.fa"
+faidx "${DOWNLOAD_DIR}/hg19.p13.plusMT.fa"
+faidx "${DOWNLOAD_DIR}/hg38.fa"
+faidx "${DOWNLOAD_DIR}/hg38.p14.fa"
+faidx "${DOWNLOAD_DIR}/mm39.fa"
+faidx "${DOWNLOAD_DIR}/mm10.fa"
+faidx "${DOWNLOAD_DIR}/hs1.fa"
 test ! -f "${DOWNLOAD_DIR}/hg19-regions.bed" && python3 testfiles/ucsc-scripts/create-test-regions.py testfiles/ucsc/hg19.fa.fai --output testfiles/ucsc/hg19-regions.bed
 test ! -f "${DOWNLOAD_DIR}/hg38-regions.bed" && python3 testfiles/ucsc-scripts/create-test-regions.py testfiles/ucsc/hg38.fa.fai --output testfiles/ucsc/hg38-regions.bed
 

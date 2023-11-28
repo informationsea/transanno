@@ -315,6 +315,9 @@ impl Chain {
                     next_original - offset,
                     next_original,
                 )?;
+                if offset > next_new {
+                    return Err(LiftOverError::OutOfRangeError);
+                }
                 let offset_query_seq = match self.new_strand {
                     Strand::Forward => new_sequence.get_sequence(
                         &self.new_chromosome.name,
@@ -438,7 +441,15 @@ impl ChainFile {
                 continue;
             }
 
-            new_chain_list.push(one_chain.left_align(original_sequence, new_sequence)?);
+            match one_chain.left_align(original_sequence, new_sequence) {
+                Ok(value) => new_chain_list.push(value),
+                Err(e) => {
+                    warn!(
+                        "Failed to left align chain file: {} (chain_id: {})",
+                        e, one_chain.chain_id
+                    );
+                }
+            }
         }
         if new_chain_list.is_empty() {
             error!("No chain found. You may use wrong FASTA.");

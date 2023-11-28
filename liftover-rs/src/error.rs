@@ -54,4 +54,6 @@ pub enum LiftOverError {
     ChromosomeNotFound(String),
     #[error("No chain found")]
     NoChainFoundError,
+    #[error("Chain difference is out of range")]
+    OutOfRangeError,
 }

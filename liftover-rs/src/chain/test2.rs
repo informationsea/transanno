@@ -57,8 +57,8 @@ fn left_align_hg38_to_hg19_minimap2() -> anyhow::Result<()> {
     try_left_align(
         "testfiles/minimap2/hg38.p14__to__hg19.p13.plusMT.chain.gz",
         "../target/chain-ucsc-hg38ToHg19-left-align-minimap2.chain.gz",
-        "testfiles/ucsc/hg38.fa",
-        "testfiles/ucsc/hg19.fa",
+        "testfiles/ucsc/hg38.p14.fa",
+        "testfiles/ucsc/hg19.p13.plusMT.fa",
     )?;
     Ok(())
 }
