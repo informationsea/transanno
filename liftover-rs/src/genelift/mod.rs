@@ -100,11 +100,19 @@ impl<'a, T: Feature, F: Feature> TranscriptLiftError<'a, T, F> {
         new_transcript
             .original_record
             .set_attribute("FAIL_REASON", self.error.error_message());
-        for failed_one in self.failed_features.iter() {
-            for one in new_transcript.children.iter_mut() {
+        for one in new_transcript.children.iter_mut() {
+            for failed_one in self.failed_features.iter() {
                 if one == failed_one.0 {
                     one.set_attribute("FAIL_REASON", failed_one.1.error_message());
                 }
+            }
+            for one_lifted_future in self.features.iter() {
+                if one_lifted_future.iter().any(|x| x.feature == one) {
+                    one.set_attribute("MAPPED_COUNT", &format!("{}", one_lifted_future.len()));
+                }
+            }
+            if one.attribute("MAPPED_COUNT").is_none() {
+                one.set_attribute("MAPPED_COUNT", "0");
             }
         }
 
@@ -140,6 +148,7 @@ impl<'a, T: Feature, F: Feature> LiftedTranscript<'a, T, F> {
 pub struct LiftedFeature<'a, F: Feature> {
     pub feature: &'a F,
     pub seq_id: String,
+    pub chain_index: usize,
     pub start: u64,
     pub end: u64,
     pub strand: GeneStrand,
@@ -265,6 +274,7 @@ impl GeneLiftOver {
                     LiftedFeature {
                         feature,
                         seq_id: x.chromosome.name.clone(),
+                        chain_index: x.chain_index,
                         start: x.start + 1, // convert to 1-based
                         end: x.end,
                         strand: strand * feature.strand(),
@@ -378,13 +388,10 @@ impl GeneLiftOver {
         }
 
         // Find a chromosome which is included in all lifted features.
-        let first_entry_chromosome =
-            success_features[0]
-                .iter()
-                .fold(HashSet::new(), |mut acc, x| {
-                    acc.insert(x.seq_id.clone());
-                    acc
-                });
+        let first_entry_chromosome: HashSet<_> = success_features[0]
+            .iter()
+            .map(|x| x.seq_id.clone())
+            .collect();
         let common_chromosome =
             success_features
                 .iter()
@@ -412,7 +419,7 @@ impl GeneLiftOver {
             });
         }
         // If a part of exons were lifted to multiple chromosome, remove lifted region which is not lifted to selected chromosome from candidates.
-        let success_features: Vec<_> = success_features
+        let mut success_features: Vec<_> = success_features
             .into_iter()
             .map(|x| {
                 x.into_iter()
@@ -422,6 +429,24 @@ impl GeneLiftOver {
             .collect();
         if let Some(_zero) = success_features.iter().find(|x| x.is_empty()) {
             unreachable!();
+        }
+        // Find common chain index
+        let mut common_chain_index: HashSet<_> =
+            success_features[0].iter().map(|x| x.chain_index).collect();
+        for one_success_futures in &success_features {
+            common_chain_index.retain(|x| one_success_futures.iter().any(|y| y.chain_index == *x));
+        }
+
+        // Remove all features which are not included in common chain index, if common chain index is found.
+        if common_chain_index.len() == 1 && success_features.iter().any(|x| x.len() > 1) {
+            success_features = success_features
+                .into_iter()
+                .map(|x| {
+                    x.into_iter()
+                        .filter(|y| common_chain_index.contains(&y.chain_index))
+                        .collect::<Vec<_>>()
+                })
+                .collect();
         }
 
         // Check multi-mapped features

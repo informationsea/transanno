@@ -96,6 +96,7 @@ fn test_simple_feature() {
             seq_id: "chr22".to_string(),
             start: 16287254,
             end: 16287937,
+            chain_index: 8,
             strand: GeneStrand::Reverse,
             feature: &original,
             changes: vec![RegionChangeOp::Aligned(16287937 - 16287254 + 1)],
@@ -137,6 +138,7 @@ fn test_simple_feature() {
         lifted_feature,
         vec![LiftedFeature {
             seq_id: "chr22".to_string(),
+            chain_index: 13,
             start: 17979663,
             end: 17979767,
             strand: GeneStrand::Forward,
@@ -209,6 +211,7 @@ fn test_transcript_feature_reversed() {
             features: vec![
                 LiftedFeature {
                     seq_id: "chr22".to_string(),
+                    chain_index: 8,
                     start: 16287254,
                     end: 16287937,
                     changes: vec![RegionChangeOp::Aligned(684)],
@@ -217,6 +220,7 @@ fn test_transcript_feature_reversed() {
                 },
                 LiftedFeature {
                     seq_id: "chr22".to_string(),
+                    chain_index: 8,
                     start: 16282478,
                     end: 16282592,
                     changes: vec![RegionChangeOp::Aligned(115)],
@@ -331,6 +335,7 @@ fn test_transcript_feature_forward() {
             features: vec![
                 LiftedFeature {
                     seq_id: "chr22".to_string(),
+                    chain_index: 4,
                     start: 17700246,
                     end: 17700475,
                     changes: vec![RegionChangeOp::Aligned(230)],
@@ -339,6 +344,7 @@ fn test_transcript_feature_forward() {
                 },
                 LiftedFeature {
                     seq_id: "chr22".to_string(),
+                    chain_index: 4,
                     start: 17687961,
                     end: 17688180,
                     changes: vec![RegionChangeOp::Aligned(220)],
@@ -473,6 +479,7 @@ fn test_gene_feature() {
                     transcript: &original.transcripts[0],
                     features: vec![LiftedFeature {
                         seq_id: "chr22".to_string(),
+                        chain_index: 8,
                         start: 16287254,
                         end: 16287937,
                         strand: GeneStrand::Reverse,
@@ -488,6 +495,7 @@ fn test_gene_feature() {
                     transcript: &original.transcripts[1],
                     features: vec![LiftedFeature {
                         seq_id: "chr22".to_string(),
+                        chain_index: 8,
                         start: 16282478,
                         end: 16282592,
                         strand: GeneStrand::Reverse,
@@ -567,6 +575,7 @@ fn test_gene_feature() {
                     transcript: &original.transcripts[0],
                     features: vec![LiftedFeature {
                         seq_id: "chr22".to_string(),
+                        chain_index: 3,
                         start: 23165270,
                         end: 23165365,
                         strand: GeneStrand::Forward,
@@ -582,6 +591,7 @@ fn test_gene_feature() {
                     transcript: &original.transcripts[1],
                     features: vec![LiftedFeature {
                         seq_id: "chr22".to_string(),
+                        chain_index: 3,
                         start: 23165272,
                         end: 23165364,
                         strand: GeneStrand::Forward,
