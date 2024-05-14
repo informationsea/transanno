@@ -290,6 +290,46 @@ impl GeneLiftOver {
         &self,
         feature: &'a Gene<G, T, F>,
     ) -> Result<LiftedGene<'a, G, T, F>, GeneLiftError<'a, G, T, F>> {
+        // check if gene has any transcripts
+        if feature.transcripts.is_empty() {
+            // If gene has no transcripts, lift gene itself. (e.g. pseudogene)
+            match self.lift_single_feature(feature) {
+                Ok(result) => {
+                    if result.is_empty() {
+                        return Err(GeneLiftError {
+                            error: FeatureLiftError::NoCandidates,
+                            gene: feature,
+                            failed_transcripts: Vec::new(),
+                        });
+                    }
+                    if result.len() > 2 {
+                        return Err(GeneLiftError {
+                            error: FeatureLiftError::MultiMap,
+                            gene: feature,
+                            failed_transcripts: Vec::new(),
+                        });
+                    }
+                    let lifted_future = &result[0];
+                    return Ok(LiftedGene {
+                        gene: feature,
+                        seq_id: lifted_future.seq_id.clone(),
+                        start: lifted_future.start,
+                        end: lifted_future.end,
+                        strand: lifted_future.strand,
+                        transcripts: Vec::new(),
+                        failed_transcripts: Vec::new(),
+                    });
+                }
+                Err(err) => {
+                    return Err(GeneLiftError {
+                        error: err,
+                        gene: feature,
+                        failed_transcripts: Vec::new(),
+                    });
+                }
+            }
+        }
+
         // Collect lifted transcripts
         let (success_features, failed_transcripts) = feature.transcripts.iter().fold(
             (Vec::new(), Vec::new()),
