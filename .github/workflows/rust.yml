@@ -1,86 +1,58 @@
 name: Build
-
 on:
+  workflow_dispatch:
   push:
-    branches: [master, action-test]
+    branches: [master, workflow-test]
     tags: ["v*"]
   pull_request:
     branches: [master]
-
 env:
-  CARGO_TERM_COLOR: always
-  APP_NAME: transanno
-
+  ARTIFACT_NAME: transanno
+permissions:
+  contents: write
+  pull-requests: read
 jobs:
-  tag:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Short tag
-        id: short_tag
-        if: ${{ startsWith(github.ref, 'refs/tags/v')  }}
-        run: echo "tag=$(basename ${{ github.ref }})" >> $GITHUB_OUTPUT
-      - name: Hash
-        id: hash
-        if: ${{ startsWith(github.ref, 'refs/heads/')  }}
-        run: echo "tag=${{ github.sha }}" >> $GITHUB_OUTPUT
-    outputs:
-      tag: ${{ steps.short_tag.outputs.tag }}${{ steps.hash.outputs.tag }}
-
   build:
-    runs-on: ${{ matrix.config.os }}
-    needs: tag
+    name: Build
+    runs-on: ${{ matrix.config.runs-on }}
     strategy:
+      fail-fast: false
       matrix:
         config:
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
+          - runs-on: macos-latest
+            target: aarch64-apple-darwin
             test: true
             cross: false
-          - os: macos-latest
+          - runs-on: macos-latest
             target: x86_64-apple-darwin
             test: true
             cross: false
-          - os: macos-latest
-            target: aarch64-apple-darwin
-            test: false
-            cross: false
-          # - os: ubuntu-latest
-          #   target: x86_64-unknown-linux-gnu
-          #   test: true
-          #   cross: false
-          - os: ubuntu-latest
+          - runs-on: ubuntu-latest
             target: x86_64-unknown-linux-musl
             test: true
-            cross: false
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-musl
-            test: false
             cross: true
+          - runs-on: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            test: true
+            cross: true
+          - runs-on: windows-latest
+            target: x86_64-pc-windows-msvc
+            test: true
+            cross: false
+          - runs-on: windows-latest
+            target: aarch64-pc-windows-msvc
+            test: false
+            cross: false
+    env:
+      CARGO_CMD: ${{ matrix.config.cross && 'cross' || 'cargo' }}
+      ARTIFACT_SUFFIX: ${{ contains(matrix.config.target, 'windows') && '.exe' || '' }}
+      TAG: ${{ github.ref_type == 'tag' && github.ref_name || github.sha }}
     steps:
       - name: Git config
-        if: ${{ matrix.config.os == 'windows-latest' }}
+        if: runner.os == 'Windows'
         run: git config --global core.autocrlf input
-      - uses: actions/checkout@v3
-      - name: Install musl tools
-        if: ${{ matrix.config.target == 'x86_64-unknown-linux-musl' }}
-        run: sudo apt-get install musl-tools musl-dev
-      - name: Prepare files for UNIX
-        if: ${{ matrix.config.os != 'windows-latest' }}
-        run: ./prepare-test-files.sh
-      - name: Prepare files for Windows
-        if: ${{ matrix.config.os == 'windows-latest' }}
-        run:
-          "7z e liftover-rs\\testfiles\\genomes\\GRCh37\\GRCh37.chr22.genome.fa.xz -oliftover-rs\\testfiles\\genomes\\GRCh37 &&
-          7z e liftover-rs\\testfiles\\genomes\\GRCh37\\GRCh37.chr22.revcomp.genome.fa.xz -oliftover-rs\\testfiles\\genomes\\GRCh37 &&
-          7z e liftover-rs\\testfiles\\genomes\\GRCh38\\GRCh38.chr22.genome.fa.xz -oliftover-rs\\testfiles\\genomes\\GRCh38"
-      - name: Install rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          target: ${{ matrix.config.target }}
-          override: true
-          components: rustfmt, clippy
-      - uses: actions/cache@v3
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -88,84 +60,113 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ matrix.config.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Prepare files for UNIX
+        if: runner.os != 'Windows'
+        run: ./prepare-test-files.sh
+      - name: Prepare files for Windows
+        if: runner.os == 'Windows'
+        run:
+          "7z e liftover-rs\\testfiles\\genomes\\GRCh37\\GRCh37.chr22.genome.fa.xz -oliftover-rs\\testfiles\\genomes\\GRCh37 &&
+          7z e liftover-rs\\testfiles\\genomes\\GRCh37\\GRCh37.chr22.revcomp.genome.fa.xz -oliftover-rs\\testfiles\\genomes\\GRCh37 &&
+          7z e liftover-rs\\testfiles\\genomes\\GRCh38\\GRCh38.chr22.genome.fa.xz -oliftover-rs\\testfiles\\genomes\\GRCh38"
+      - name: Install cross
+        if: matrix.config.cross
+        run: type cross > /dev/null || cargo install cross
+      - name: Install toolchain
+        run: rustup target install ${{ matrix.config.target }}
       - name: Build
-        uses: actions-rs/cargo@v1
-        with:
-          use-cross: ${{ matrix.config.cross }}
-          command: build
-          args: --release --target ${{ matrix.config.target }}
+        run: ${{ env.CARGO_CMD }} build --verbose --release --target ${{ matrix.config.target }}
       - name: Test
-        if: ${{ matrix.config.test }}
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --release --target ${{ matrix.config.target }}
-      - name: Create release zip for UNIX
-        if: ${{ matrix.config.os != 'windows-latest' }}
+        if: matrix.config.test
+        run: ${{ env.CARGO_CMD }} test --verbose --release --target ${{ matrix.config.target }}
+      - name: Copy artifact
         run: |
-          mkdir -p ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}
-          cp target/${{ matrix.config.target }}/release/${{ env.APP_NAME }} ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
-          cp README.md ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
-          cp LICENSE ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
-          zip -r ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}.zip ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
-      - name: Create release zip for Windows
-        if: ${{ matrix.config.os == 'windows-latest' }}
+          mkdir .artifact
+          mkdir .artifact/${{ env.ARTIFACT_NAME }}-${{ matrix.config.target }}-${{ env.TAG }}
+          cp target/${{ matrix.config.target }}/release/${{ env.ARTIFACT_NAME }}${{ env.ARTIFACT_SUFFIX }} .artifact/${{ env.ARTIFACT_NAME }}-${{ matrix.config.target }}-${{ env.TAG }}/
+          cp README.md .artifact/${{ env.ARTIFACT_NAME }}-${{ matrix.config.target }}-${{ env.TAG }}/
+          cp LICENSE .artifact/${{ env.ARTIFACT_NAME }}-${{ matrix.config.target }}-${{ env.TAG }}/
+      - name: Zip artifact (Unix)
+        if: runner.os != 'Windows'
         run: |
-          mkdir ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}
-          cp target/${{ matrix.config.target }}/release/${{ env.APP_NAME }}.exe ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
-          cp README.md ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
-          cp LICENSE ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
-          Compress-Archive -DestinationPath ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}.zip -Path ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}/
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+          cd .artifact/
+          zip -r ${{ env.ARTIFACT_NAME }}-${{ matrix.config.target }}-${{ env.TAG }}.zip ${{ env.ARTIFACT_NAME }}-${{ matrix.config.target }}-${{ env.TAG }}
+      - name: Zip artifact (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd .artifact/
+          Compress-Archive -Path ${{ env.ARTIFACT_NAME }}-${{ matrix.config.target }}-${{ env.TAG }} -DestinationPath ${{ env.ARTIFACT_NAME }}-${{ matrix.config.target }}-${{ env.TAG }}.zip
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag}}.zip
-          path: |
-            ./${{ env.APP_NAME }}-${{ matrix.config.target }}-${{ needs.tag.outputs.tag }}.zip
-
-  release:
-    needs: [build, tag]
+          name: ${{ env.ARTIFACT_NAME }}-${{ matrix.config.target }}-${{ env.TAG }}.zip
+          path: .artifact/${{ env.ARTIFACT_NAME }}-${{ matrix.config.target }}-${{ env.TAG }}.zip
+          if-no-files-found: error
+  create-release:
+    name: Create Release
+    if: github.ref_type == 'tag'
     runs-on: ubuntu-latest
-    if: ${{ startsWith(github.ref, 'refs/tags/v')  }}
+    needs: build
     steps:
       - name: Create release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -xeu
+          cat > generate-release-content-request.json <<EOF
+          {
+            "tag_name": "${{ github.ref_name }}"
+          }
+          EOF
+          curl -L --fail \
+          -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer  ${{ github.token }}" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/generate-notes \
+          -d @generate-release-content-request.json > release-content.json
+          cat release-content.json
+          cat > release-request.json <<EOF
+          {
+            "tag_name": "${{ github.ref_name }}",
+            "name": "$(jq -r '.name' release-content.json)",
+            "body": "$(jq -r '.body' release-content.json)",
+            "draft": true,
+            "prerelease": false
+          }
+          EOF
+          curl --fail -L \
+          -X POST \
+          -H "Accept: application/vnd.github+json" \
+          -H "Authorization: Bearer ${{ github.token }}" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          https://api.github.com/repos/${GITHUB_REPOSITORY}/releases \
+          -d @release-request.json > release.json
+          mkdir -p .artifact
+      - uses: actions/download-artifact@v4
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ needs.tag.outputs.tag }}
-          draft: false
-          prerelease: false
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-
-  upload:
-    needs: [release, tag]
-    runs-on: ubuntu-latest
-    if: ${{ startsWith(github.ref, 'refs/tags/v')  }}
-    strategy:
-      matrix:
-        target:
-          - x86_64-pc-windows-msvc
-          - x86_64-apple-darwin
-          - aarch64-apple-darwin
-          - x86_64-unknown-linux-musl
-          - aarch64-unknown-linux-musl
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: ${{ env.APP_NAME }}-${{ matrix.target }}-${{ needs.tag.outputs.tag }}.zip
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: ./${{ env.APP_NAME }}-${{ matrix.target }}-${{ needs.tag.outputs.tag }}.zip
-          asset_name: ${{ env.APP_NAME }}-${{ matrix.target }}-${{ needs.tag.outputs.tag }}.zip
-          asset_content_type: application/zip
+          path: .artifact
+      - name: Upload artifact
+        run: |
+          set -xeu
+          cd .artifact
+          ls -laR
+          for one in *.zip; do
+          curl -L --fail \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            -H "Content-Type: application/octet-stream" \
+            "https://uploads.github.com/repos/${GITHUB_REPOSITORY}/releases/$(jq -r '.id' ../release.json)/assets?name=${one}" \
+            --data-binary "@${one}/${one}"
+          done
+      - name: Publish release
+        run: |
+          set -xeu
+          curl --fail -L \
+            -X PATCH \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/$(jq -r '.id' release.json) \
+            -d '{"draft": false}'
