@@ -1,4 +1,5 @@
 use crate::utils::{create, open};
+use anyhow::Context;
 use bio::io::fasta::IndexedReader;
 use clap::Args;
 use liftover::chain::{Chain, Strand};
@@ -19,42 +20,42 @@ pub struct Chain2BedVcf {
         short = 'b',
         help = "Output original assembly BED file (Not sorted)"
     )]
-    reference_bed: String,
+    original_bed: String,
     #[arg(
         long = "output-new-bed",
         alias = "output-query-bed",
         short = 'd',
         help = "Output new assembly BED file (Not sorted)"
     )]
-    query_bed: String,
+    new_bed: String,
     #[arg(
         long = "output-original-vcf",
         alias = "output-reference-vcf",
         short = 'v',
         help = "Output original assembly VCF file (Not sorted)"
     )]
-    reference_vcf: String,
+    original_vcf: String,
     #[arg(
         long = "output-new-vcf",
         alias = "output-query-vcf",
         short = 'c',
         help = "Output new assembly VCF file (Not sorted)"
     )]
-    query_vcf: String,
+    new_vcf: String,
     #[arg(
         long = "original",
         alias = "reference",
         short = 'r',
         help = "Original assembly FASTA (.fai file is required)"
     )]
-    reference_sequence: String,
+    original_sequence: String,
     #[arg(
         long = "new",
         alias = "query",
         short = 'q',
         help = "New assembly FASTA (.fai file is required)"
     )]
-    query_sequence: String,
+    new_sequence: String,
     #[arg(
         long = "svlen",
         short = 's',
@@ -68,12 +69,12 @@ impl Chain2BedVcf {
     pub fn run(&self) -> anyhow::Result<()> {
         chain_to_bed_vcf_helper(
             &self.chain,
-            &self.reference_sequence,
-            &self.query_sequence,
-            &self.reference_vcf,
-            &self.query_vcf,
-            &self.reference_bed,
-            &self.query_bed,
+            &self.original_sequence,
+            &self.new_sequence,
+            &self.original_vcf,
+            &self.new_vcf,
+            &self.original_bed,
+            &self.new_bed,
             self.svlen,
         )?;
         Ok(())
@@ -83,48 +84,53 @@ impl Chain2BedVcf {
 #[allow(clippy::too_many_arguments)]
 fn chain_to_bed_vcf_helper(
     chain_path: &str,
-    reference_sequence_path: &str,
-    query_sequence_path: &str,
-    reference_vcf_path: &str,
-    query_vcf_path: &str,
-    reference_bed_path: &str,
-    query_bed_path: &str,
+    original_sequence_path: &str,
+    new_sequence_path: &str,
+    original_vcf_path: &str,
+    new_vcf_path: &str,
+    original_bed_path: &str,
+    new_bed_path: &str,
     sv_len: usize,
-) -> Result<(), LiftOverError> {
-    let mut reference_sequence =
-        IndexedReader::from_file(&reference_sequence_path).expect("Cannot open reference sequence");
-    let mut query_sequence =
-        IndexedReader::from_file(&query_sequence_path).expect("Cannot open query sequence");
-    let chain_file =
-        liftover::chain::ChainFile::load(open(chain_path).expect("Cannot open chain file"))
-            .expect("Cannot parse chain file");
-
-    let mut query_vcf_writer = create(query_vcf_path).expect("Cannot create Query VCF file");
-    write_vcf_header_for_sequence(&mut query_vcf_writer, &query_sequence, query_sequence_path)
-        .expect("Cannot write query VCF");
-    let mut query_bed_writer = create(query_bed_path).expect("Cannot create Query BED file");
-
-    let mut reference_vcf_writer =
-        create(reference_vcf_path).expect("Cannot create reference VCF file");
-    write_vcf_header_for_sequence(
-        &mut reference_vcf_writer,
-        &reference_sequence,
-        reference_sequence_path,
+) -> anyhow::Result<()> {
+    let mut original_sequence = IndexedReader::from_file(&original_sequence_path)
+        .with_context(|| format!("Cannot open original sequence: {original_sequence_path}"))?;
+    let mut new_sequence = IndexedReader::from_file(&new_sequence_path)
+        .with_context(|| format!("Cannot open query sequence: {new_sequence_path}"))?;
+    let chain_file = liftover::chain::ChainFile::load(
+        open(chain_path).with_context(|| format!("Cannot open chain file: {chain_path}"))?,
     )
-    .expect("Cannot write reference VCF");
+    .with_context(|| format!("Cannot parse chain file: {chain_path}"))?;
 
-    let mut reference_bed_writer =
-        create(reference_bed_path).expect("Cannot create reference BED file");
+    let mut new_vcf_writer = create(new_vcf_path)
+        .with_context(|| format!("Cannot create new assembly VCF file: {new_vcf_path}"))?;
+    write_vcf_header_for_sequence(&mut new_vcf_writer, &new_sequence, new_sequence_path)
+        .context("Cannot write new assembly VCF")?;
+    let mut new_bed_writer = create(new_bed_path)
+        .with_context(|| format!("Cannot create new assembly BED file: {new_bed_path}"))?;
+
+    let mut original_vcf_writer = create(original_vcf_path).with_context(|| {
+        format!("Cannot create original assembly VCF file: {original_vcf_path}")
+    })?;
+    write_vcf_header_for_sequence(
+        &mut original_vcf_writer,
+        &original_sequence,
+        original_sequence_path,
+    )
+    .context("Cannot write original assembly VCF")?;
+
+    let mut original_bed_writer = create(original_bed_path).with_context(|| {
+        format!("Cannot create original assembly BED file: {original_bed_path}")
+    })?;
 
     for one_chain in chain_file.chain_list {
         // Check chromosome length
-        match one_chain.check_sequence_consistency(&mut reference_sequence, &mut query_sequence) {
+        match one_chain.check_sequence_consistency(&mut original_sequence, &mut new_sequence) {
             Ok(_) => (),
             Err(LiftOverError::ChromosomeNotFound(_)) => {
                 warn!("Skip chain ID: {}", one_chain.chain_id);
                 continue;
             }
-            Err(e) => return Err(e),
+            Err(e) => return Err(e.into()),
         }
 
         // write BED
@@ -142,7 +148,7 @@ fn chain_to_bed_vcf_helper(
         );
 
         writeln!(
-            reference_bed_writer,
+            original_bed_writer,
             "{}\t{}\t{}\tchain_id:{};{}:{}-{}\t{}\t{}",
             one_chain.original_chromosome.name,
             reference_start,
@@ -161,7 +167,7 @@ fn chain_to_bed_vcf_helper(
         .expect("Cannot write reference BED");
 
         writeln!(
-            query_bed_writer,
+            new_bed_writer,
             "{}\t{}\t{}\tchain_id:{};{}:{}-{}\t{}\t{}",
             one_chain.new_chromosome.name,
             query_start,
@@ -181,10 +187,10 @@ fn chain_to_bed_vcf_helper(
 
         write_vcf_entry(
             one_chain,
-            &mut reference_sequence,
-            &mut query_sequence,
-            &mut reference_vcf_writer,
-            &mut query_vcf_writer,
+            &mut original_sequence,
+            &mut new_sequence,
+            &mut original_vcf_writer,
+            &mut new_vcf_writer,
             sv_len,
         )?;
     }
@@ -194,10 +200,10 @@ fn chain_to_bed_vcf_helper(
 
 fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
     one_chain: Chain,
-    reference_sequence: &mut G,
-    query_sequence: &mut G,
-    reference_vcf_writer: &mut W,
-    query_vcf_writer: &mut W,
+    original_sequence: &mut G,
+    new_sequence: &mut G,
+    original_vcf_writer: &mut W,
+    new_vcf_writer: &mut W,
     sv_len: usize,
 ) -> Result<(), LiftOverError> {
     // Write VCF
@@ -219,12 +225,12 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
             one_chain.new_strand,
         );
 
-        let reference_sequence_data = reference_sequence.get_sequence(
+        let reference_sequence_data = original_sequence.get_sequence(
             &one_chain.original_chromosome.name,
             interval_reference_start,
             interval_reference_end,
         )?;
-        let query_sequence_data_tmp = query_sequence.get_sequence(
+        let query_sequence_data_tmp = new_sequence.get_sequence(
             &one_chain.new_chromosome.name,
             interval_query_start,
             interval_query_end,
@@ -253,16 +259,16 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
             };
 
             write!(
-                reference_vcf_writer,
+                original_vcf_writer,
                 "{}\t{}\t.\t",
                 one_chain.original_chromosome.name,
                 one_position.0 as u64 + reference_current + 1,
             )?;
-            reference_vcf_writer.write_all(&[*(one_position.1).0])?;
-            reference_vcf_writer.write_all(b"\t")?;
-            reference_vcf_writer.write_all(&[*(one_position.1).1])?;
+            original_vcf_writer.write_all(&[*(one_position.1).0])?;
+            original_vcf_writer.write_all(b"\t")?;
+            original_vcf_writer.write_all(&[*(one_position.1).1])?;
             writeln!(
-                reference_vcf_writer,
+                original_vcf_writer,
                 "\t.\t.\tTARGET_CHROM={};TARGET_POS={};CHAIN_ID={};STRAND={}",
                 one_chain.new_chromosome.name,
                 query_vcf_pos,
@@ -272,24 +278,24 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
 
             // write query VCF
             write!(
-                query_vcf_writer,
+                new_vcf_writer,
                 "{}\t{}\t.\t",
                 one_chain.new_chromosome.name, query_vcf_pos,
             )?;
             match one_chain.new_strand {
                 Strand::Forward => {
-                    query_vcf_writer.write_all(&[*(one_position.1).1])?;
-                    query_vcf_writer.write_all(b"\t")?;
-                    query_vcf_writer.write_all(&[*(one_position.1).0])?;
+                    new_vcf_writer.write_all(&[*(one_position.1).1])?;
+                    new_vcf_writer.write_all(b"\t")?;
+                    new_vcf_writer.write_all(&[*(one_position.1).0])?;
                 }
                 Strand::Reverse => {
-                    query_vcf_writer.write_all(&[reverse_acid(*(one_position.1).1)])?;
-                    query_vcf_writer.write_all(b"\t")?;
-                    query_vcf_writer.write_all(&[reverse_acid(*(one_position.1).0)])?;
+                    new_vcf_writer.write_all(&[reverse_acid(*(one_position.1).1)])?;
+                    new_vcf_writer.write_all(b"\t")?;
+                    new_vcf_writer.write_all(&[reverse_acid(*(one_position.1).0)])?;
                 }
             }
             writeln!(
-                query_vcf_writer,
+                new_vcf_writer,
                 "\t.\t.\tTARGET_CHROM={};TARGET_POS={};CHAIN_ID={};STRAND={}",
                 one_chain.original_chromosome.name,
                 one_position.0 as u64 + reference_current + 1,
@@ -321,12 +327,12 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
             one_chain.new_strand,
         );
 
-        let reference_sequence_data = reference_sequence.get_sequence(
+        let reference_sequence_data = original_sequence.get_sequence(
             &one_chain.original_chromosome.name,
             interval_reference_start,
             interval_reference_end,
         )?;
-        let query_sequence_data_tmp = query_sequence.get_sequence(
+        let query_sequence_data_tmp = new_sequence.get_sequence(
             &one_chain.new_chromosome.name,
             interval_query_start,
             interval_query_end,
@@ -359,14 +365,14 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
                 };
 
                 write!(
-                    reference_vcf_writer,
+                    original_vcf_writer,
                     "{}\t{}\t.\t",
                     one_chain.original_chromosome.name,
                     reference_current + 1,
                 )?;
-                reference_vcf_writer.write_all(&reference_sequence_data[0..1])?;
+                original_vcf_writer.write_all(&reference_sequence_data[0..1])?;
                 writeln!(
-                    reference_vcf_writer,
+                    original_vcf_writer,
                     "\t<{}>\t.\t.\tEND={};TARGET_CHROM={};TARGET_POS={};SVTYPE={};SVLEN={};CHAIN_ID={};STRAND={}",
                     sv_type,
                     reference_current + reference_sequence_data.len() as u64,
@@ -388,7 +394,7 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
                 };
 
                 write!(
-                    query_vcf_writer,
+                    new_vcf_writer,
                     "{}\t{}\t.\t",
                     one_chain.new_chromosome.name, query_vcf_pos,
                 )?;
@@ -396,9 +402,9 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
                     Strand::Forward => query_sequence_data,
                     Strand::Reverse => reverse_complement(&query_sequence_data),
                 };
-                query_vcf_writer.write_all(&query_vcf_ref[0..1])?;
+                new_vcf_writer.write_all(&query_vcf_ref[0..1])?;
                 writeln!(
-                    query_vcf_writer,
+                    new_vcf_writer,
                     "\t<{}>\t.\t.\tEND={};TARGET_CHROM={};TARGET_POS={};SVTYPE={};SVLEN={};CHAIN_ID={};STRAND={}",
                     sv_type_query,
                     query_vcf_pos + query_vcf_ref.len() as u64,
@@ -411,16 +417,16 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
                 )?;
             } else {
                 write!(
-                    reference_vcf_writer,
+                    original_vcf_writer,
                     "{}\t{}\t.\t",
                     one_chain.original_chromosome.name,
                     reference_current + 1,
                 )?;
-                reference_vcf_writer.write_all(&reference_sequence_data)?;
-                reference_vcf_writer.write_all(b"\t")?;
-                reference_vcf_writer.write_all(&query_sequence_data)?;
+                original_vcf_writer.write_all(&reference_sequence_data)?;
+                original_vcf_writer.write_all(b"\t")?;
+                original_vcf_writer.write_all(&query_sequence_data)?;
                 writeln!(
-                    reference_vcf_writer,
+                    original_vcf_writer,
                     "\t.\t.\tTARGET_CHROM={};TARGET_POS={};CHAIN_ID={};STRAND={}",
                     one_chain.new_chromosome.name,
                     query_vcf_pos,
@@ -430,7 +436,7 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
 
                 // Write Query VCF
                 write!(
-                    query_vcf_writer,
+                    new_vcf_writer,
                     "{}\t{}\t.\t",
                     one_chain.new_chromosome.name, query_vcf_pos,
                 )?;
@@ -438,15 +444,15 @@ fn write_vcf_entry<G: GenomeSequence, W: io::Write>(
                     Strand::Forward => query_sequence_data,
                     Strand::Reverse => reverse_complement(&query_sequence_data),
                 };
-                query_vcf_writer.write_all(&query_vcf_ref)?;
-                query_vcf_writer.write_all(b"\t")?;
+                new_vcf_writer.write_all(&query_vcf_ref)?;
+                new_vcf_writer.write_all(b"\t")?;
                 let query_vcf_alt = match one_chain.new_strand {
                     Strand::Forward => reference_sequence_data,
                     Strand::Reverse => reverse_complement(&reference_sequence_data),
                 };
-                query_vcf_writer.write_all(&query_vcf_alt)?;
+                new_vcf_writer.write_all(&query_vcf_alt)?;
                 writeln!(
-                    query_vcf_writer,
+                    new_vcf_writer,
                     "\t.\t.\tTARGET_CHROM={};TARGET_POS={};CHAIN_ID={};STRAND={}",
                     one_chain.original_chromosome.name,
                     reference_current + 1,
@@ -506,22 +512,54 @@ fn write_vcf_header_for_sequence(
 
 #[cfg(test)]
 mod test {
+    use clap::Parser;
+
+    use crate::Cli;
+
     use super::*;
     use std::fs;
 
     #[test]
-    fn test_chain_to_bed_vcf_helper_chr22() -> Result<(), LiftOverError> {
+    fn test_chain_to_bed_vcf_helper_chr22() -> anyhow::Result<()> {
         fs::create_dir_all("../target/test-output/chain2bed")?;
         chain_to_bed_vcf_helper(
             "../liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
             "../liftover-rs/testfiles/genomes/GRCh38/GRCh38.chr22.genome.fa",
             "../liftover-rs/testfiles/genomes/GRCh37/GRCh37.chr22.genome.fa",
-            "../target/test-output/chain2bed/chain-to-bed-vcf--GRCh37.vcf",
             "../target/test-output/chain2bed/chain-to-bed-vcf--GRCh38.vcf",
-            "../target/test-output/chain2bed/chain-to-bed-vcf--GRCh37.bed",
+            "../target/test-output/chain2bed/chain-to-bed-vcf--GRCh37.vcf",
             "../target/test-output/chain2bed/chain-to-bed-vcf--GRCh38.bed",
+            "../target/test-output/chain2bed/chain-to-bed-vcf--GRCh37.bed",
             50,
         )?;
+
+        // TODO: Check result
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_chain_to_bed_vcf_helper_chr22_cli() -> anyhow::Result<()> {
+        fs::create_dir_all("../target/test-output/chain2bed-2")?;
+
+        let cli = Cli::parse_from(&[
+            "transanno",
+            "chain-to-bed-vcf",
+            "../liftover-rs/testfiles/genomes/chain/GRCh38-to-GRCh37.chr22.chain",
+            "--original",
+            "../liftover-rs/testfiles/genomes/GRCh38/GRCh38.chr22.genome.fa",
+            "--new",
+            "../liftover-rs/testfiles/genomes/GRCh37/GRCh37.chr22.genome.fa",
+            "--output-new-bed",
+            "../target/test-output/chain2bed-2/new-GRCh37.bed",
+            "--output-new-vcf",
+            "../target/test-output/chain2bed-2/new-GRCh37.vcf.gz",
+            "--output-original-bed",
+            "../target/test-output/chain2bed-2/original-GRCh38.bed",
+            "--output-original-vcf",
+            "../target/test-output/chain2bed-2/original-GRCh38.vcf.gz",
+        ]);
+        cli.command.run()?;
 
         // TODO: Check result
 

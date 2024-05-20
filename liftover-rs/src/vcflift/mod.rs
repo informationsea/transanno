@@ -520,11 +520,12 @@ impl<G: GenomeSequence> VCFLiftOver<G> {
         Ok(VCFLiftOverResult::Succeeded(succeeded_records))
     }
 
-    pub fn lift_vcf<R: Read, W1: Write, W2: Write>(
+    pub fn lift_vcf<R: Read, W1: Write, W2: Write, W3: Write>(
         &mut self,
         reader: R,
         success_writer: W1,
         failed_writer: W2,
+        mut summary_writer: Option<W3>,
     ) -> Result<(), LiftOverError> {
         let mut vcf_reader = VCFReader::new(reader)?;
         let lifted_header = self.lift_header(&vcf_reader.header)?;
@@ -591,6 +592,36 @@ impl<G: GenomeSequence> VCFLiftOver<G> {
         eprintln!("    Total record: {}", succeeded_records + failed_records);
         eprintln!("   Mapped record: {}", succeeded_records);
         eprintln!(" Unmapped record: {}", failed_records);
+
+        if let Some(summary_writer) = summary_writer.as_mut() {
+            let mut csv_writer = csv::WriterBuilder::new()
+                .delimiter(b'\t')
+                .quote_style(csv::QuoteStyle::Never)
+                .escape(b'\\')
+                .from_writer(summary_writer);
+            csv_writer.write_record(&["Title", "Count", "Percent"])?;
+            csv_writer.write_record(&[
+                "Total record".to_string(),
+                (succeeded_records + failed_records).to_string(),
+                "100.00%".to_string(),
+            ])?;
+            csv_writer.write_record(&[
+                "Mapped record".to_string(),
+                succeeded_records.to_string(),
+                format!(
+                    "{:.2}%",
+                    (succeeded_records as f64) / (succeeded_records + failed_records) as f64 * 100.
+                ),
+            ])?;
+            csv_writer.write_record(&[
+                "Unmapped record".to_string(),
+                failed_records.to_string(),
+                format!(
+                    "{:.2}%",
+                    failed_records as f64 / (succeeded_records + failed_records) as f64 * 100.
+                ),
+            ])?;
+        }
 
         Ok(())
     }

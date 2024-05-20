@@ -31,12 +31,19 @@ pub struct ChainLeftAlign {
 impl ChainLeftAlign {
     pub fn run(&self) -> anyhow::Result<()> {
         info!("start loading chain");
-        let chain_file = open(&self.original_chain).context("Cannot create input chain file")?;
-        let mut output_file = create(&self.output).context("Cannot create output chain file")?;
-        let mut original_seq = IndexedReader::from_file(&self.original_sequence)
-            .context("Cannot load original assembly FASTA")?;
+        let chain_file = open(&self.original_chain)
+            .with_context(|| format!("Cannot create input chain file: {}", self.original_chain))?;
+        let mut output_file = create(&self.output)
+            .with_context(|| format!("Cannot create output chain file: {}", self.output))?;
+        let mut original_seq =
+            IndexedReader::from_file(&self.original_sequence).with_context(|| {
+                format!(
+                    "Cannot load original assembly FASTA: {}",
+                    self.original_sequence
+                )
+            })?;
         let mut new_seq = IndexedReader::from_file(&self.new_sequence)
-            .context("Cannot load new assembly FASTA")?;
+            .with_context(|| format!("Cannot load new assembly FASTA: {}", self.new_sequence))?;
         let chain_data = chain::ChainFile::load(chain_file).expect("Failed to parse chain file");
         let left_aligned = chain_data.left_align(&mut original_seq, &mut new_seq)?;
         left_aligned.write(&mut output_file)?;

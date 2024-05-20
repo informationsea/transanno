@@ -1,6 +1,7 @@
 use crate::utils::{create, open};
 use anyhow::Context;
 use clap::Args;
+use csv::WriterBuilder as CSVWriterBuilder;
 use liftover::genelift::GeneLiftOver;
 use liftover::geneparse::gff3::{Gff3GroupedReader, Gff3Reader};
 use liftover::geneparse::gtf::{GtfGroupedReader, GtfReader};
@@ -34,6 +35,8 @@ pub struct LiftGene {
         help = "Failed to liftOver GFF3/GTF output path"
     )]
     failed: String,
+    #[arg(long, short, help = "LiftOver summary output path")]
+    summary_output: Option<String>,
 }
 
 impl LiftGene {
@@ -44,6 +47,7 @@ impl LiftGene {
             self.format,
             &self.output,
             &self.failed,
+            self.summary_output.as_deref(),
         )?;
         Ok(())
     }
@@ -62,6 +66,7 @@ fn lift_gene_helper(
     format: ArgFormat,
     output: &str,
     failed: &str,
+    summary_output: Option<&str>,
 ) -> anyhow::Result<()> {
     let chain_file = PositionLiftOver::load(open(chain_path).context("Failed to open chain file")?)
         .context("Failed parse chain file.")?;
@@ -70,6 +75,13 @@ fn lift_gene_helper(
         io::BufWriter::new(create(output).with_context(|| format!("Failed to create {}", output))?);
     let mut failed_writer =
         io::BufWriter::new(create(failed).with_context(|| format!("Failed to create {}", failed))?);
+    let mut summary_writer = if let Some(summary_output) = summary_output {
+        Some(io::BufWriter::new(create(summary_output).with_context(
+            || format!("Failed to create {}", summary_output),
+        )?))
+    } else {
+        None
+    };
 
     let format = match format {
         ArgFormat::GFF3 => Format::GFF3,
@@ -87,11 +99,23 @@ fn lift_gene_helper(
         Format::GFF3 => {
             let mut reader =
                 Gff3GroupedReader::new(Gff3Reader::new(io::BufReader::new(open(gff)?)));
-            lift_gene_run(&gene_lift, &mut reader, &mut writer, &mut failed_writer)?;
+            lift_gene_run(
+                &gene_lift,
+                &mut reader,
+                &mut writer,
+                &mut failed_writer,
+                &mut summary_writer,
+            )?;
         }
         Format::GTF => {
             let mut reader = GtfGroupedReader::new(GtfReader::new(io::BufReader::new(open(gff)?)));
-            lift_gene_run(&gene_lift, &mut reader, &mut writer, &mut failed_writer)?;
+            lift_gene_run(
+                &gene_lift,
+                &mut reader,
+                &mut writer,
+                &mut failed_writer,
+                &mut summary_writer,
+            )?;
         }
     }
 
@@ -103,6 +127,7 @@ fn lift_gene_run<G: Feature + Display, T: Feature + Display, F: Feature + Displa
     reader: &mut impl GroupedReader<G, T, F>,
     writer: &mut impl io::Write,
     failed_writer: &mut impl io::Write,
+    summary_writer: &mut Option<impl io::Write>,
 ) -> Result<(), LiftOverError> {
     let mut processed_genes = 0;
     let mut processed_transcripts = 0;
@@ -167,6 +192,63 @@ fn lift_gene_run<G: Feature + Display, T: Feature + Display, F: Feature + Displa
             * 100f64
     );
 
+    if let Some(summary_writer) = summary_writer.as_mut() {
+        let mut csv_writer = CSVWriterBuilder::new()
+            .has_headers(true)
+            .delimiter(b'\t')
+            .quote_style(csv::QuoteStyle::Never)
+            .escape(b'\\')
+            .from_writer(summary_writer);
+
+        csv_writer.write_record(&["Title", "Count", "Percent"])?;
+
+        csv_writer.write_record(&[
+            "Full Succeeded Genes".to_string(),
+            full_succeeded_genes.to_string(),
+            format!(
+                "{:.2}%",
+                f64::from(full_succeeded_genes) / f64::from(processed_genes) * 100f64
+            ),
+        ])?;
+        csv_writer.write_record(&[
+            "Partial Succeeded Genes".to_string(),
+            partial_succeeded_genes.to_string(),
+            format!(
+                "{:.2}%",
+                f64::from(partial_succeeded_genes) / f64::from(processed_genes) * 100f64
+            ),
+        ])?;
+        csv_writer.write_record(&[
+            "Failed Genes".to_string(),
+            (processed_genes - partial_succeeded_genes - full_succeeded_genes).to_string(),
+            format!(
+                "{:.2}%",
+                f64::from(processed_genes - full_succeeded_genes - partial_succeeded_genes)
+                    / f64::from(processed_genes)
+                    * 100f64
+            ),
+        ])?;
+
+        csv_writer.write_record(&[
+            "Succeeded Transcripts".to_string(),
+            succeeded_transcripts.to_string(),
+            format!(
+                "{:.2}%",
+                succeeded_transcripts as f64 / processed_transcripts as f64 * 100f64
+            ),
+        ])?;
+        csv_writer.write_record(&[
+            "Failed Transcripts".to_string(),
+            (processed_transcripts - succeeded_transcripts).to_string(),
+            format!(
+                "{:.2}%",
+                (processed_transcripts - succeeded_transcripts) as f64
+                    / processed_transcripts as f64
+                    * 100f64
+            ),
+        ])?;
+    }
+
     Ok(())
 }
 
@@ -185,6 +267,7 @@ mod test {
             ArgFormat::Auto,
             "../target/test-output/gene/gff-lift-gencode.v33.basic.annotation.chr22.mapped.gff3.gz",
             "../target/test-output/gene/gff-lift-gencode.v33.basic.annotation.chr22.failed.gff3.gz",
+Some(            "../target/test-output/gene/gff-lift-gencode.v33.basic.annotation.chr22.summary.txt"),
         )?;
 
         Ok(())
@@ -200,6 +283,7 @@ mod test {
             ArgFormat::GTF,
             "../target/test-output/gene/gff-lift-gencode.v33.annotation.chr22.mapped.gtf.gz",
             "../target/test-output/gene/gff-lift-gencode.v33.annotation.chr22.failed.gtf.gz",
+            Some("../target/test-output/gene/gff-lift-gencode.v33.annotation.chr22.summary.txt"),
         )?;
 
         Ok(())
@@ -215,6 +299,7 @@ mod test {
             ArgFormat::Auto,
             "../target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.mapped.gff3.gz",
             "../target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.failed.gff3.gz",
+            Some("../target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.summary.txt"),
         )?;
 
         Ok(())
@@ -230,6 +315,7 @@ mod test {
             ArgFormat::Auto,
             "../target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.mapped.gtf.gz",
             "../target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.failed.gtf.gz",
+            Some("../target/test-output/gene/gff-lift-Homo_sapiens.GRCh38.99.chr22.summary.txt"),
         )?;
 
         Ok(())

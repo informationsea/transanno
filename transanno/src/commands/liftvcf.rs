@@ -22,16 +22,18 @@ pub struct LiftVcf {
         help = "New assembly FASTA (.fai file is required)"
     )]
     new_sequence: String,
-    #[arg(long = "chain", short = 'c', help = "chain file")]
+    #[arg(long, short, help = "chain file")]
     chain: String,
-    #[arg(long = "vcf", short = 'v', help = "input VCF file to liftOver")]
+    #[arg(long, short, help = "input VCF file to liftOver")]
     vcf: String,
     #[arg(
-        long = "output",
-        short = 'o',
+        long,
+        short,
         help = "output VCF file for succeeded to liftOver records (This file is not sorted)"
     )]
     output: String,
+    #[arg(short, long, help = "Output TSV file of liftOver summary")]
+    summary_output: Option<String>,
     #[arg(
         long = "fail",
         short = 'f',
@@ -151,7 +153,55 @@ impl LiftVcf {
         let success_writer = create(&self.output).expect("Cannot create output VCF");
         let failed_writer =
             create(&self.fail).expect("Cannot create output VCF for failed records");
-        vcf_lift.lift_vcf(uncompressed_reader, success_writer, failed_writer)?;
+        let summary_writer = if let Some(summary_output) = self.summary_output.as_ref() {
+            Some(create(summary_output).with_context(|| {
+                format!("Failed to open summary output file: {}", summary_output)
+            })?)
+        } else {
+            None
+        };
+
+        vcf_lift.lift_vcf(
+            uncompressed_reader,
+            success_writer,
+            failed_writer,
+            summary_writer,
+        )?;
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use clap::Parser;
+
+    use crate::Cli;
+
+    #[test]
+    fn test_vcflift() -> anyhow::Result<()> {
+        std::fs::create_dir_all("../target/test-output/vcf")?;
+
+        let cli = Cli::parse_from(&[
+            "transanno",
+            "liftvcf",
+            "--chain",
+            "../liftover-rs/testfiles/genomes/chain/GRCh37-to-GRCh38.chr22.chain",
+            "--vcf",
+            "../liftover-rs/testfiles/1000-genomes/1kGP-subset.vcf.gz",
+            "--original-assembly",
+            "../liftover-rs/testfiles/genomes/GRCh37/GRCh37.chr22.genome.fa",
+            "--new-assembly",
+            "../liftover-rs/testfiles/genomes/GRCh38/GRCh38.chr22.genome.fa",
+            "--output",
+            "../target/test-output/vcf/1kGP-subset-liftover.success.vcf.gz",
+            "--fail",
+            "../target/test-output/vcf/1kGP-subset-liftover.fail.vcf.gz",
+            "--summary-output",
+            "../target/test-output/vcf/1kGP-subset-liftover.summary.txt",
+        ]);
+
+        cli.command.run()?;
+
         Ok(())
     }
 }
