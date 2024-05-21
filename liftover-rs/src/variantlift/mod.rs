@@ -43,30 +43,30 @@ impl<'a> From<&LiftedVariant> for Variant {
 
 #[derive(Debug)]
 pub struct VariantLiftOver<G: GenomeSequence> {
-    reference_sequence: G,
-    query_sequence: G,
+    original_sequence: G,
+    new_sequence: G,
     lift_position: PositionLiftOver,
 }
 
 impl<G: GenomeSequence> VariantLiftOver<G> {
     pub fn load<R: Read>(
         chain_file: R,
-        reference_sequence: G,
-        query_sequence: G,
+        original_sequence: G,
+        new_sequence: G,
     ) -> Result<Self, LiftOverError> {
         let lift_position = PositionLiftOver::load(chain_file)?;
         Ok(VariantLiftOver {
-            reference_sequence,
-            query_sequence,
+            original_sequence,
+            new_sequence,
             lift_position,
         })
     }
 
-    pub fn new(chain_file: ChainFile, reference_sequence: G, query_sequence: G) -> Self {
+    pub fn new(chain_file: ChainFile, original_sequence: G, new_sequence: G) -> Self {
         let lift_position = PositionLiftOver::new(chain_file);
         VariantLiftOver {
-            reference_sequence,
-            query_sequence,
+            original_sequence,
+            new_sequence,
             lift_position,
         }
     }
@@ -103,7 +103,7 @@ impl<G: GenomeSequence> VariantLiftOver<G> {
             .unwrap_or(0);
 
         let expected_ref = self
-            .reference_sequence
+            .original_sequence
             .get_sequence(&variant.chromosome, start, end)?;
         if expected_ref != variant.reference {
             return Ok(vec![Err(
@@ -192,14 +192,14 @@ impl<G: GenomeSequence> VariantLiftOver<G> {
             }
 
             let extended_start_seq =
-                self.reference_sequence
+                self.original_sequence
                     .get_sequence(&variant.chromosome, consider_start, start)?;
             let extended_end_seq =
-                self.reference_sequence
+                self.original_sequence
                     .get_sequence(&variant.chromosome, end, consider_end)?;
 
-            let query_chromosome = one_region.chromosome;
-            let query_sequence = self.query_sequence.get_sequence(
+            let new_chromosome = one_region.chromosome;
+            let new_sequence = self.new_sequence.get_sequence(
                 &one_region.chromosome.name,
                 one_region.start,
                 one_region.end,
@@ -241,15 +241,15 @@ impl<G: GenomeSequence> VariantLiftOver<G> {
             };
 
             let mut variant = Variant {
-                chromosome: query_chromosome.name.to_string(),
+                chromosome: new_chromosome.name.to_string(),
                 position: one_region.start,
-                reference: query_sequence,
+                reference: new_sequence,
                 alternative: vec![reference_seq]
                     .into_iter()
                     .chain(alternate_seq.into_iter())
                     .collect(),
             }
-            .normalize(&mut self.query_sequence)?;
+            .normalize(&mut self.new_sequence)?;
 
             let original_reference = variant.alternative.remove(0);
 

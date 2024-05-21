@@ -85,14 +85,12 @@ pub struct LiftOverResult<'a> {
 #[derive(Debug)]
 pub struct PositionLiftOver {
     original_interval: HashMap<String, IntervalTree<u64, TargetRegion>>,
-    //query_interval: HashMap<String, IntervalTree<u64, TargetRegion>>,
     chain_file: ChainFile,
 }
 
 impl PositionLiftOver {
     pub fn new(chain_file: ChainFile) -> PositionLiftOver {
         let mut original_interval = HashMap::new();
-        //let mut query_interval = HashMap::new();
 
         for (i, one_chain) in chain_file.chain_list.iter().enumerate() {
             trace!(
