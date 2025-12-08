@@ -45,12 +45,18 @@ fn minimap2_to_chain_helper(paf_path: &str, chain_path: &str) -> anyhow::Result<
         if elements.len() < 9 {
             return Err(anyhow::anyhow!("invalid format: line {}", count));
         }
+        let score_tag = elements
+            .iter()
+            .find(|x| x.starts_with("AS:i:"))
+            .context(format!("Cannot find AS:i: line {}", count))?;
+        let score: i64 = score_tag[5..].parse().expect("cannot parse score");
 
         match elements[4] {
             "+" => {
                 writeln!(
                     chain_file,
-                    "chain\t4900\t{}\t{}\t+\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+                    "chain\t{}\t{}\t{}\t+\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+                    score,
                     elements[0],
                     elements[1],
                     elements[2],
@@ -67,7 +73,8 @@ fn minimap2_to_chain_helper(paf_path: &str, chain_path: &str) -> anyhow::Result<
                 let seqlen = elements[6].parse::<u64>().expect("Cannot parse column 7");
                 writeln!(
                     chain_file,
-                    "chain\t4900\t{}\t{}\t+\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+                    "chain\t{}\t{}\t{}\t+\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+                    score,
                     elements[0],
                     elements[1],
                     elements[2],
