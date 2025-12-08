@@ -58,7 +58,7 @@ accurate VCF/GFF3/GTF LiftOver tool for new genome assemblies
 2. Run minimap2
     * `minimap2 -cx asm5 --cs QUERY_FASTA.fa REFERENCE_FASTA.fa > PAF_FILE.paf`
 3. Run transanno to create chain file
-    * `transanno minimap2-to-chain PAF_FILE.paf --output CHAINFILE.chain`
+    * `transanno minimap2chain PAF_FILE.paf --output CHAINFILE.chain`
 
 Thanks to minimap2, you can create new chain file in 30 minute.
 
